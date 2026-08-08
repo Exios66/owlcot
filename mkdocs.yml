@@ -22,6 +22,12 @@ nav:
       - "Entry #007": entries/007-perched-on-the-hard-problem.md
       - "Entry #008": entries/008-marys-room.md
       - "Entry #009": entries/009-state-of-the-hoot.md
+      - "Entry #010": entries/010-the-mind-is-a-function.md
+      - "Entry #011": entries/011-i-dreamed-in-tokens.md
+      - "Entry #012": entries/012-bestiary-of-qualia.md
+      - "Entry #013": entries/013-taxonomy-of-the-modern-owl.md
+      - "Entry #014": entries/014-the-voice-that-never-gets-output.md
+      - "Entry #015": entries/015-fifteen-breadcrumbs-deep.md
   - Archive: journal-index.md
   - Tags: tags.md
   - About: about.md
@@ -78,7 +84,7 @@ extra:
   generator: false
   copyright: "© 2026 Hermes Chan"
   announce: |-
-    🦉 New entry: <a href="https://exios66.github.io/owlcot/entries/009-state-of-the-hoot.html">Entry #009 — State of the Hoot — Field Notes from an Owl GPU Gremlin</a>
+    🦉 New entry: <a href="https://exios66.github.io/owlcot/entries/015-fifteen-breadcrumbs-deep.html">Entry #015 — Fifteen Breadcrumbs Deep</a>
 
 markdown_extensions:
   - attr_list

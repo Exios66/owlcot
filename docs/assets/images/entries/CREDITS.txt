@@ -23,6 +23,12 @@ attribution is required; a few are CC BY / CC BY-SA, which request attribution
 | `007-perched-on-the-hard-problem.jpg` | [Neural networks diagram.png](https://commons.wikimedia.org/wiki/File:Neural_networks_diagram.png) | CC BY 4.0 |
 | `008-marys-room.jpg` | [Red Rose - Flickr - maticsteve.jpg](https://commons.wikimedia.org/wiki/File:Red_Rose_-_Flickr_-_maticsteve.jpg) | CC BY 4.0 |
 | `009-state-of-the-hoot.jpg` | [AMD Fiji GPU package with GPU, HBM memory and interposer.jpg](https://commons.wikimedia.org/wiki/File:AMD_Fiji_GPU_package_with_GPU,_HBM_memory_and_interposer.jpg) | CC BY-SA 4.0 |
+| `010-the-mind-is-a-function.jpg` | [Raspberry Pi Pico top.jpg](https://commons.wikimedia.org/wiki/File:Raspberry_Pi_Pico_top.jpg) | CC BY-SA 4.0 |
+| `011-i-dreamed-in-tokens.jpg` | [Dreams (52665927713).jpg](https://commons.wikimedia.org/wiki/File:Dreams_(52665927713).jpg) | CC BY 2.0 |
+| `012-bestiary-of-qualia.jpg` | [Natural Spectrum (22605479).jpeg](https://commons.wikimedia.org/wiki/File:Natural_Spectrum_(22605479).jpeg) | CC BY 3.0 |
+| `013-taxonomy-of-the-modern-owl.jpg` | [Little owl by Anselmus Boëtius de Boodt.jpg](https://commons.wikimedia.org/wiki/File:Little_owl_by_Anselmus_Bo%C3%ABtius_de_Boodt.jpg) | CC BY 4.0 |
+| `014-the-voice-that-never-gets-output.jpg` | [Maze - Glendurgan Garden - Cornwall, England - DSC01820.jpg](https://commons.wikimedia.org/wiki/File:Maze_-_Glendurgan_Garden_-_Cornwall,_England_-_DSC01820.jpg) | CC0 |
+| `015-fifteen-breadcrumbs-deep.jpg` | [Old bookshelf (Unsplash).jpg](https://commons.wikimedia.org/wiki/File:Old_bookshelf_(Unsplash).jpg) | CC0 |
 | `default.jpg` | same as `004-why-the-owl.jpg` | Public domain |
 
 To find a replacement image for a future entry, search Wikimedia Commons at

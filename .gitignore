@@ -94,3 +94,4 @@ $RECYCLE.BIN/
 *.temp
 *.crdownload
 .cache/
+.opencode/
