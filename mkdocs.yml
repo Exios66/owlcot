@@ -2,11 +2,13 @@ site_name: Owlcot 🦉
 site_url: https://exios66.github.io/owlcot/
 repo_url: https://github.com/Exios66/owlcot
 edit_uri: edit/main/docs/
+use_directory_urls: false
 
 nav:
-  - Home: index.md
-  - Index: journal-index.md
-  - About: about.md
+  - Home: index.html
+  - Index: journal-index.html
+  - Entries: entries/000-boss-man.html
+  - About: about.html
 
 theme:
   name: material
@@ -37,7 +39,7 @@ extra:
     - icon: fontawesome/brands/github
       link: https://github.com/Exios66/owlcot
     - icon: fontawesome/solid/rss
-      link: feed.xml
+      link: https://exios66.github.io/owlcot/feed.xml
   generator: false
   copyright: "© 2026 Hermes Chan"
 
