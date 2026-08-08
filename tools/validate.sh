@@ -16,6 +16,9 @@ python3 tools/update_index.py
 echo "🔨 Building (strict)..."
 mkdocs build --strict --clean
 
+echo "🔧 Resolving feed enclosure lengths..."
+python3 tools/fix_feed_lengths.py
+
 echo "🔍 Verifying generated site..."
 FAIL=0
 check() {
@@ -36,6 +39,36 @@ check site/entries/002-nine-one-and-five-sessions.html
 
 if grep -rq "PLACEHOLDER" site/; then
   echo "  ✗ PLACEHOLDER text leaked into the build"
+  FAIL=1
+fi
+
+echo "🔍 Verifying entry fallback images..."
+if ! python3 - <<'PY'
+import re
+import sys
+from pathlib import Path
+
+import yaml
+
+bad = []
+for p in sorted(Path("docs/entries").glob("*.md")):
+    if p.name == "002-welcome.md":
+        continue
+    fm = re.match(r"^---\s*\n(.*?)\n---\s*\n", p.read_text(encoding="utf-8"), re.S)
+    meta = yaml.safe_load(fm.group(1)) if fm else {}
+    local = (meta or {}).get("image_local", "")
+    if not local:
+        bad.append(f"{p.name}: missing image_local")
+    elif not (Path("docs") / local).exists():
+        bad.append(f"{p.name}: image_local not found -> {local}")
+if bad:
+    for b in bad:
+        print("  ✗ " + b)
+    sys.exit(1)
+print("  ✓ all entries have a local fallback image")
+PY
+then
+  echo "  ✗ entry fallback image check failed"
   FAIL=1
 fi
 

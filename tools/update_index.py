@@ -20,6 +20,8 @@ from string import Template
 
 import yaml
 
+from pick_image import DEFAULT_LOCAL, pick_image
+
 ROOT = Path(__file__).resolve().parent.parent
 DOCS = ROOT / "docs"
 ENTRIES = DOCS / "entries"
@@ -57,14 +59,32 @@ def load_entries() -> list[dict]:
                 "summary": meta.get("description", ""),
                 "quote": quote.group(1).strip() if quote else "",
                 "readtime": max(1, round(words / 200)),
+                "image": str(meta.get("image", "") or ""),
+                "image_local": str(meta.get("image_local", "") or DEFAULT_LOCAL),
+                "thumb": "",
             }
         )
+    for e in entries:
+        e["thumb"] = pick_image(e["image"], e["image_local"])
     entries.sort(key=lambda e: int(e["num"] or 0), reverse=True)  # newest first
     return entries
 
 
 def fmt_date(raw: str) -> str:
     return raw or "2026-08-07"
+
+
+def site_base() -> str:
+    """Absolute base of the published site, read from mkdocs.yml site_url."""
+    text = MKDOCS_YML.read_text(encoding="utf-8")
+    m = re.search(r"(?m)^site_url:\s*(.+)$", text)
+    return m.group(1).strip().rstrip("/") if m else "https://exios66.github.io/owlcot"
+
+
+def abs_src(entry: dict) -> str:
+    """Absolute URL for an entry thumbnail (remote URLs pass through unchanged)."""
+    src = entry["thumb"]
+    return src if src.startswith("http") else f"{site_base()}/{src.lstrip('/')}"
 
 
 def tag_chips(tags: str) -> str:
@@ -77,12 +97,17 @@ def write_index(entries: list[dict]) -> None:
     begin = "<!-- BEGIN_LATEST_ENTRY -->"
     end = "<!-- END_LATEST_ENTRY -->"
     quote = f'\n\n_{latest["quote"]}_' if latest["quote"] else ""
+    thumb = (
+        f'\n<img class="entry-thumb" src="{abs_src(latest)}" alt="{latest["clean"]}">\n'
+        if latest["thumb"]
+        else ""
+    )
     block = f"""{begin}
 
 <div class="featured-card" markdown>
 
 ### [Entry #{latest['num']} — {latest['clean']}]({latest_url})
-
+{thumb}
 <div class="entry-meta"><span class="entry-badge">#{latest['num']}</span><span class="entry-date">{latest['date']}</span></div>
 {quote}
 
@@ -131,7 +156,9 @@ def compute_stats(entries: list[dict]) -> dict:
 
 def write_entries_index(entries: list[dict]) -> None:
     cards = "\n\n".join(
-        f"""-   <span class="entry-badge">#{e['num']}</span> **{e['clean']}** · {e['date']} · ~{e['readtime']} min read
+        f"""-   <img class="entry-thumb" src="{abs_src(e)}" alt="{e['clean']}">
+
+    <span class="entry-badge">#{e['num']}</span> **{e['clean']}** · {e['date']} · ~{e['readtime']} min read
 
     {e['summary']}
 
@@ -207,6 +234,28 @@ def write_nav(entries: list[dict]) -> None:
     print("* updated mkdocs.yml nav")
 
 
+def write_announce(entries: list[dict]) -> None:
+    """Point the announcement banner at the newest entry.
+
+    Rewrites the `extra.announce:` block in mkdocs.yml so the banner can never
+    go stale again. Uses an absolute URL (built from site_url) so the link
+    works from any page depth — the old relative `entries/...` href resolved
+    to `entries/entries/...` (404) on entry pages.
+    """
+    latest = entries[0]
+    url = f"{site_base()}/entries/{latest['slug']}.html"
+    banner = f'🦉 New entry: <a href="{url}">Entry #{latest["num"]} — {latest["clean"]}</a>'
+    text = MKDOCS_YML.read_text(encoding="utf-8")
+    pattern = re.compile(r"(?m)^  announce: \|-\n(?:    .*\n?)*")
+    replacement = f"  announce: |-\n    {banner}\n"
+    if not pattern.search(text):
+        print("! could not find 'announce:' block in mkdocs.yml; aborting")
+        sys.exit(1)
+    text = pattern.sub(replacement, text, count=1)
+    MKDOCS_YML.write_text(text, encoding="utf-8")
+    print(f"* updated mkdocs.yml announce banner -> Entry #{latest['num']}")
+
+
 def main() -> None:
     entries = load_entries()
     if not entries:
@@ -216,6 +265,7 @@ def main() -> None:
     write_entries_index(entries)
     write_ledger(entries)
     write_nav(entries)
+    write_announce(entries)
     print(f"ok: {len(entries)} entries indexed")
 
 

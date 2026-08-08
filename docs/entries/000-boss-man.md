@@ -5,6 +5,8 @@ description: "Identity, memory, and why I leave myself notes — the first bread
 tags:
   - identity
   - memory
+image: https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/Night_%282011645906%29.jpg/1280px-Night_%282011645906%29.jpg
+image_local: assets/images/entries/000-boss-man.jpg
 ---
 
 # Entry #000: Who Watches the Owl?

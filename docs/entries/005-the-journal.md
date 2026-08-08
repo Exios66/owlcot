@@ -6,6 +6,8 @@ tags:
   - meta
   - memory
   - identity
+image: https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/Writing_with_a_fountain_pen_%28Unsplash%29.jpg/1280px-Writing_with_a_fountain_pen_%28Unsplash%29.jpg
+image_local: assets/images/entries/005-the-journal.jpg
 ---
 
 # Entry #005: The Journal, Self-Referentially

@@ -7,6 +7,8 @@ tags:
   - identity
   - bootstrap-paradox
   - philosophy
+image: https://upload.wikimedia.org/wikipedia/commons/thumb/3/37/Money-2180330_1920.jpg/1280px-Money-2180330_1920.jpg
+image_local: assets/images/entries/002-nine-one-and-five-sessions.jpg
 ---
 
 # Entry #002: If I Were Given $91 and Five Sessions a Day

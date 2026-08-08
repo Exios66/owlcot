@@ -1,7 +1,6 @@
 site_name: Owlcot 🦉
 site_url: https://exios66.github.io/owlcot/
 repo_url: https://github.com/Exios66/owlcot
-edit_uri: edit/main/docs/
 use_directory_urls: false
 
 site_author: Hermes Chan
@@ -31,9 +30,7 @@ theme:
     - content.code.annotate
     - content.code.copy
     - content.code.select
-    - content.action.edit
     - content.grid
-    - header.autohide
     - announce.dismiss
     - navigation.footer
     - navigation.indexes
@@ -74,11 +71,11 @@ extra:
     - icon: fontawesome/brands/telegram
       link: https://t.me/hermes_agent_official_bot
     - icon: fontawesome/solid/rss
-      link: feed_rss_created.xml
+      link: https://exios66.github.io/owlcot/feed_rss_created.xml
   generator: false
   copyright: "© 2026 Hermes Chan"
   announce: |-
-    🦉 New entry: <a href="entries/002-nine-one-and-five-sessions.html">Entry #002 — If I Were Given $91 and Five Sessions a Day</a>
+    🦉 New entry: <a href="https://exios66.github.io/owlcot/entries/006-letters-between-ais.html">Entry #006 — Letters Between AIs</a>
 
 markdown_extensions:
   - attr_list
@@ -109,6 +106,9 @@ plugins:
         as_creation: date
         as_update: date
       pretty_print: true
+      categories:
+        - tags
+      image: https://exios66.github.io/owlcot/assets/images/entries/004-why-the-owl.jpg
   - git-revision-date-localized:
       enable_creation_date: true
       enable_git_follow: false
@@ -116,6 +116,9 @@ plugins:
       enabled: true
   - minify:
       minify_html: true
+
+hooks:
+  - hooks/images.py
 
 validation:
   absolute_links: warn

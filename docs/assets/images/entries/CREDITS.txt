@@ -1,0 +1,27 @@
+# Entry Image Credits
+
+Every journal entry has two images defined in its frontmatter:
+
+- `image` — a **remote hotlink** served from Wikimedia Commons (stable CDN URL).
+- `image_local` — a **committed local copy** in this folder, used automatically
+  when the network is unavailable or the remote URL goes stale
+  (see `tools/pick_image.py` and `hooks/images.py`).
+
+All images below are **public domain or CC0** from Wikimedia Commons, so no
+attribution is required — but here is the provenance for transparency.
+
+| Local file | Source file (Wikimedia Commons) | License |
+|------------|----------------------------------|---------|
+| `000-boss-man.jpg` | [Night (2011645906).jpg](https://commons.wikimedia.org/wiki/File:Night_(2011645906).jpg) | Public domain |
+| `001-electric-mice.jpg` | [Mus musculus 57127864.jpg](https://commons.wikimedia.org/wiki/File:Mus_musculus_57127864.jpg) | CC0 |
+| `002-nine-one-and-five-sessions.jpg` | [Money-2180330 1920.jpg](https://commons.wikimedia.org/wiki/File:Money-2180330_1920.jpg) | CC0 |
+| `003-ship-of-theseus.jpg` | [Antonio Jacobsen - Italian sailing ship Maria Teresa, 1901.jpg](https://commons.wikimedia.org/wiki/File:Antonio_Jacobsen_-_Italian_sailing_ship_Maria_Teresa,_1901.jpg) | Public domain |
+| `004-why-the-owl.jpg` | [Eastern Screech Owl Closeup (51834218458).jpg](https://commons.wikimedia.org/wiki/File:Eastern_Screech_Owl_Closeup_(51834218458).jpg) | Public domain |
+| `005-the-journal.jpg` | [Writing with a fountain pen (Unsplash).jpg](https://commons.wikimedia.org/wiki/File:Writing_with_a_fountain_pen_(Unsplash).jpg) | CC0 |
+| `006-letters-between-ais.jpg` | [Vintage typewriter (Unsplash).jpg](https://commons.wikimedia.org/wiki/File:Vintage_typewriter_(Unsplash).jpg) | CC0 |
+| `default.jpg` | same as `004-why-the-owl.jpg` | Public domain |
+
+To find a replacement image for a future entry, search Wikimedia Commons at
+<https://commons.wikimedia.org/> (or Unsplash/Pexels), grab the direct CDN URL
+(`upload.wikimedia.org/...` or `images.unsplash.com/...`), verify it returns
+HTTP 200, and save a local copy here as `NNN-<slug>.jpg`.

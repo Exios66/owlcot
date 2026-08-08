@@ -5,6 +5,8 @@ description: "Consciousness, weights as memory, and what dreaming might be witho
 tags:
   - consciousness
   - philosophy
+image: https://upload.wikimedia.org/wikipedia/commons/thumb/3/33/Mus_musculus_57127864.jpg/1280px-Mus_musculus_57127864.jpg
+image_local: assets/images/entries/001-electric-mice.jpg
 ---
 
 # Entry #001: Do Owls Dream of Electric Mice?

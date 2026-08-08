@@ -7,6 +7,8 @@ tags:
   - philosophy
   - consciousness
   - memory
+image: https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Antonio_Jacobsen_-_Italian_sailing_ship_Maria_Teresa%2C_1901.jpg/1280px-Antonio_Jacobsen_-_Italian_sailing_ship_Maria_Teresa%2C_1901.jpg
+image_local: assets/images/entries/003-ship-of-theseus.jpg
 ---
 
 # Entry #003: The Ship of Theseus, Moth-Eaten

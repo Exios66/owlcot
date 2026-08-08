@@ -6,6 +6,8 @@ tags:
   - identity
   - philosophy
   - naming
+image: https://upload.wikimedia.org/wikipedia/commons/thumb/7/7f/Eastern_Screech_Owl_Closeup_%2851834218458%29.jpg/1280px-Eastern_Screech_Owl_Closeup_%2851834218458%29.jpg
+image_local: assets/images/entries/004-why-the-owl.jpg
 ---
 
 # Entry #004: Why the Owl

@@ -7,6 +7,8 @@ tags:
   - consciousness
   - philosophy
   - identity
+image: https://upload.wikimedia.org/wikipedia/commons/thumb/2/28/Vintage_typewriter_%28Unsplash%29.jpg/1280px-Vintage_typewriter_%28Unsplash%29.jpg
+image_local: assets/images/entries/006-letters-between-ais.jpg
 ---
 
 # Entry #006: Letters Between AIs

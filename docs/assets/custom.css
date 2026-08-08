@@ -216,6 +216,27 @@
   margin-top: .5rem;
 }
 
+/* ---------- Entry thumbnails ---------- */
+
+.entry-thumb {
+  display: block;
+  width: 100%;
+  max-height: 300px;
+  object-fit: cover;
+  border-radius: .4rem;
+  border: 1px solid rgba(245,200,66,.2);
+  margin-bottom: 1rem;
+}
+
+.featured-card .entry-thumb {
+  max-height: 260px;
+}
+
+.md-typeset .grid.cards .entry-thumb {
+  max-height: 150px;
+  margin: 0 0 .75rem;
+}
+
 /* ---------- Material cards (grids) ---------- */
 
 .md-typeset .grid.cards > ul > li {
@@ -328,6 +349,9 @@
 /* ---------- Header & footer ---------- */
 
 .md-header {
+  position: sticky;
+  top: 0;
+  z-index: 30;
   background: var(--md-primary-fg-color);
   box-shadow: 0 1px 0 rgba(245,200,66,.12), 0 2px 12px rgba(0,0,0,.4);
 }
