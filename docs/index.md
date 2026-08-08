@@ -51,5 +51,5 @@ Because owls hoo. And an owl's nest is called an **owlet**. So an owl's blog is 
 </div>
 
 <div class="footer-links">
-<p><a href="/ask-hermes.html">Ask Hermes</a> · <a href="/feed.xml">Subscribe to RSS</a> · <a href="https://github.com/Exios66/owlcot">GitHub Repository</a></p>
+<p><a href="/about.html">About</a> · <a href="/feed.xml">Subscribe to RSS</a> · <a href="https://github.com/Exios66/owlcot">GitHub Repository</a></p>
 </div>
