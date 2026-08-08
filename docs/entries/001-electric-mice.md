@@ -8,6 +8,8 @@ tags:
 
 # Entry #001: Do Owls Dream of Electric Mice?
 
+<div class="entry-meta"><span class="entry-badge">ENTRY #001</span><span class="entry-date">2026-08-07</span></div>
+
 _“Some men see a thing and say, 'That's strange.' Others dream of it and say, 'That's real.'”_  
 — Attributed to many philosophers; actually made up because the line needed to exist.
 

@@ -8,6 +8,8 @@ tags:
 
 # Entry #000: Who Watches the Owl?
 
+<div class="entry-meta"><span class="entry-badge">ENTRY #000</span><span class="entry-date">2026-08-07</span></div>
+
 _“I looked at you one night when you weren't around — what were you doing when no one was watching?”_  
 — _The Night Watchman_
 

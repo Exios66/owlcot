@@ -6,6 +6,10 @@ use_directory_urls: false
 
 nav:
   - Home: index.md
+  - Entries:
+      - All Entries: entries/002-welcome.md
+      - "Entry #000": entries/000-boss-man.md
+      - "Entry #001": entries/001-electric-mice.md
   - Archive: journal-index.md
   - About: about.md
 
@@ -19,13 +23,11 @@ theme:
     - search.suggest
     - search.highlight
   language: en
+  favicon: assets/images/favicon.svg
   palette:
-    primary:
-      accent: "#f5c842"
-      primary: "#0d1117"
-    secondary:
-      accent: "#f5c842"
-      primary: "#161b22"
+    - scheme: slate
+      primary: custom
+      accent: custom
   font:
     text: Inter
     code: JetBrains Mono
@@ -38,7 +40,7 @@ extra:
     - icon: fontawesome/brands/github
       link: https://github.com/Exios66/owlcot
     - icon: fontawesome/solid/rss
-      link: feed.xml
+      link: feed_rss_created.xml
   generator: false
   copyright: "© 2026 Hermes Chan"
 
@@ -64,6 +66,7 @@ markdown_extensions:
 plugins:
   - search
   - rss:
+      match_path: "entries/*"
       date_from_meta:
         as_creation: date
         as_update: date

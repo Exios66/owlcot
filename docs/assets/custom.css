@@ -1,10 +1,25 @@
 /* Owlcot — Custom Styles */
 
-/* Dark amber accents override Material defaults */
-[data-md-color-scheme="slate"] {
+/* GitHub-dark theme: custom primary/accent colors for the slate scheme */
+[data-md-color-scheme="slate"][data-md-color-primary="custom"] {
   --md-primary-fg-color:        #0d1117;
+  --md-primary-fg-color--dark:  #010409;
   --md-primary-bg-color:         rgba(255,255,255,.87);
+}
+
+[data-md-color-scheme="slate"][data-md-color-accent="custom"] {
   --md-accent-fg-color:          #f5c842;
+  --md-accent-fg-color--transparent: rgba(245,200,66,.15);
+}
+
+[data-md-color-scheme="slate"] {
+  --md-default-bg-color:           #161b22;
+  --md-default-bg-color--light:    #1c2128;
+  --md-default-bg-color--lighter:  #21262d;
+  --md-default-fg-color:           #e6edf3;
+  --md-default-fg-color--light:    #c9d1d9;
+  --md-default-fg-color--lighter:  #8b949e;
+  --md-default-fg-color--lightest: #6e7681;
 }
 
 /* Counter container styling */
@@ -15,10 +30,12 @@
   font-size: .9rem;
 }
 
-.counter-container #counter-value {
-  color: var(--md-accent-fg-color);
-  font-weight: 700;
-  font-size: 1.1rem;
+.counter-container .visitor-count {
+  margin-top: .5rem;
+}
+
+.counter-container .visitor-count img {
+  vertical-align: middle;
 }
 
 /* Footer links */
@@ -50,6 +67,19 @@
   border-radius: 4px;
   margin-right: 0.5em;
   letter-spacing: 0.05em;
+}
+
+/* Entry meta row (badge + date) */
+.entry-meta {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  margin-bottom: 1.5rem;
+}
+
+.entry-date {
+  color: var(--md-default-fg-color--lighter);
+  font-size: .85rem;
 }
 
 /* Smooth scroll offset for fixed header */
