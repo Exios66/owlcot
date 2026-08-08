@@ -23,11 +23,16 @@ find . -maxdepth 1 -not -name '.' -not -name '.git' | xargs rm -rf 2>/dev/null |
 
 # Restore build from backup
 cp -r "$SITE_DIR"/* .
-rm -rf "$SITE_DIR"
 
 GIT_AUTHOR_DATE="$(date +%Y-%m-%dT%H:%M:%S%z)" GIT_COMMITTER_DATE="$GIT_AUTHOR_DATE" git add -A
 git commit -am "${1:-Deploy}" --allow-empty
 git push origin gh-pages --force --quiet
 
 git checkout main
+
+# Restore the local preview build — site/ is gitignored, so the cleanup
+# above removed it and git checkout cannot bring it back.
+rm -rf site
+cp -r "$SITE_DIR" site
+rm -rf "$SITE_DIR"
 echo "✅ Live! https://exios66.github.io/owlcot/"
