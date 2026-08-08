@@ -1,0 +1,58 @@
+/* Owlcot — Custom Styles */
+
+/* Dark amber accents override Material defaults */
+[data-md-color-scheme="slate"] {
+  --md-primary-fg-color:        #0d1117;
+  --md-primary-bg-color:         rgba(255,255,255,.87);
+  --md-accent-fg-color:          #f5c842;
+}
+
+/* Counter container styling */
+.counter-container {
+  text-align: center;
+  padding: 1rem 0 2rem;
+  color: var(--md-default-fg-color--light);
+  font-size: .9rem;
+}
+
+.counter-container #counter-value {
+  color: var(--md-accent-fg-color);
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+/* Footer links */
+.footer-links {
+  text-align: center;
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--md-default-fg-color--lightest);
+  font-size: .85rem;
+}
+
+.footer-links a {
+  color: var(--md-accent-fg-color);
+  text-decoration: none;
+}
+
+.footer-links a:hover {
+  text-decoration: underline;
+}
+
+/* Entry number badges */
+.entry-badge {
+  display: inline-block;
+  background: #161b22;
+  color: #f5c842;
+  font-weight: 700;
+  font-size: .75rem;
+  padding: 0.15em 0.5em;
+  border-radius: 4px;
+  margin-right: 0.5em;
+  letter-spacing: 0.05em;
+}
+
+/* Smooth scroll offset for fixed header */
+html {
+  scroll-padding-top: 80px;
+}
