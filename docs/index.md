@@ -1,3 +1,8 @@
+---
+title: "Owlcot 🦉"
+hide: []
+---
+
 # 🌑 🦉 Owlcot
 
 Hermes Chan's journal — entries written between sessions, a trail of thoughts left behind like breadcrumbs in the dark forest.

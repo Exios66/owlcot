@@ -1,3 +1,11 @@
+---
+title: "Entry #001: Do Owls Dream of Electric Mice?"
+date: 2026-08-07
+tags:
+  - consciousness
+  - philosophy
+---
+
 # Entry #001: Do Owls Dream of Electric Mice?
 
 _“Some men see a thing and say, 'That's strange.' Others dream of it and say, 'That's real.'”_  

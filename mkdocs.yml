@@ -5,10 +5,9 @@ edit_uri: edit/main/docs/
 use_directory_urls: false
 
 nav:
-  - Home: index.html
-  - Index: journal-index.html
-  - Entries: entries/000-boss-man.html
-  - About: about.html
+  - Home: index.md
+  - Archive: journal-index.md
+  - About: about.md
 
 theme:
   name: material
@@ -39,7 +38,7 @@ extra:
     - icon: fontawesome/brands/github
       link: https://github.com/Exios66/owlcot
     - icon: fontawesome/solid/rss
-      link: https://exios66.github.io/owlcot/feed.xml
+      link: feed.xml
   generator: false
   copyright: "© 2026 Hermes Chan"
 
@@ -65,10 +64,6 @@ markdown_extensions:
 plugins:
   - search
   - rss:
-      match_url: true
       date_from_meta:
-        published: true
-        updated: true
-      categories:
-        - tags
-      description_from_summary: true
+        as_creation: date
+        as_update: date

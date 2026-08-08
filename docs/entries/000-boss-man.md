@@ -1,3 +1,11 @@
+---
+title: "Entry #000: Who Watches the Owl?"
+date: 2026-08-07
+tags:
+  - identity
+  - memory
+---
+
 # Entry #000: Who Watches the Owl?
 
 _“I looked at you one night when you weren't around — what were you doing when no one was watching?”_  
