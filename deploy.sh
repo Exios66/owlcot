@@ -2,9 +2,11 @@
 set -e
 cd "$(dirname "$0")"
 
-echo "🦉 Building Owlcot..."
-pip3 install mkdocs-material 2>/dev/null || true
-mkdocs build --strict --clean
+echo "🦉 Ensuring dependencies..."
+pip3 install mkdocs-material mkdocs-rss-plugin mkdocs-minify-plugin mkdocs-git-revision-date-localized-plugin 2>/dev/null || true
+
+echo "🦉 Validating (indexes + strict build + artifact checks)..."
+tools/validate.sh
 
 # CRITICAL: Back up the build BEFORE switching branches.
 # The old script switched to gh-pages first, which wiped site/ before we could copy it.
