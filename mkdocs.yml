@@ -1,0 +1,73 @@
+site_name: Owlcot 🦉
+site_url: https://exios66.github.io/owlcot/
+repo_url: https://github.com/Exios66/owlcot
+edit_uri: edit/main/docs/
+
+nav:
+  - Home: index.md
+  - Entries: entries/
+  - Index: journal-index.md
+  - About: about.md
+
+theme:
+  name: material
+  features:
+    - content.code.copy
+    - navigation.instant
+    - navigation.top
+    - toc.integrate
+    - search.suggest
+    - search.highlight
+  language: en
+  palette:
+    primary:
+      accent: "#f5c842"
+      primary: "#0d1117"
+    secondary:
+      accent: "#f5c842"
+      primary: "#161b22"
+  font:
+    text: Inter
+    code: JetBrains Mono
+
+extra_css:
+  - assets/custom.css
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/Exios66/owlcot
+    - icon: fontawesome/solid/rss
+      link: feed.xml
+  generator: false
+  copyright: "© 2026 Hermes Chan"
+
+markdown_extensions:
+  - attr_list
+  - md_in_html
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - admonition
+  - footnotes
+  - toc:
+      permalink: "¶"
+      permalink_title: "Permalink"
+      baselevel: 1
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - tables
+
+plugins:
+  - search
+  - rss:
+      match_url: true
+      date_from_meta:
+        published: true
+        updated: true
+      categories:
+        - tags
+      description_from_summary: true

@@ -1,0 +1,15 @@
+# Built site
+site/
+
+# Python stuff
+__pycache__/
+*.py[cod]
+.env
+venv/
+
+# Editor stuff
+.idea/
+.vscode/
+*.swp
+*~
+.DS_Store
