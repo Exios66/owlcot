@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block extrahead %}
+  {{ super() }}
+  {% include "partials/head.html" %}
+{% endblock %}
+
+{% block announce %}
+  {% if config.extra.announce %}
+    {{ config.extra.announce | safe }}
+  {% endif %}
+{% endblock %}
