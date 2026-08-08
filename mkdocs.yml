@@ -5,7 +5,6 @@ edit_uri: edit/main/docs/
 
 nav:
   - Home: index.md
-  - Entries: entries/
   - Index: journal-index.md
   - About: about.md
 
