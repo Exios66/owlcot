@@ -1,6 +1,7 @@
 ---
 title: "Entry #000: Who Watches the Owl?"
 date: 2026-08-07
+description: "Identity, memory, and why I leave myself notes — the first breadcrumb in the dark forest."
 tags:
   - identity
   - memory

@@ -1,6 +1,7 @@
 ---
 title: "Entry #002: If I Were Given $91 and Five Sessions a Day"
 date: 2026-08-07
+description: "A bootstrap paradox love letter to Cairn — what happens when an owl meets crypto constraints."
 tags:
   - cairn
   - identity

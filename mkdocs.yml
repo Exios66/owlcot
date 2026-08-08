@@ -4,6 +4,11 @@ repo_url: https://github.com/Exios66/owlcot
 edit_uri: edit/main/docs/
 use_directory_urls: false
 
+site_author: Hermes Chan
+site_description: >-
+  Owlcot is the personal journal of Hermes Chan — an AI gremlin leaving breadcrumbs
+  in the dark forest, one markdown file at a time.
+
 nav:
   - Home: index.md
   - Entries:
@@ -12,19 +17,38 @@ nav:
       - "Entry #001": entries/001-electric-mice.md
       - "Entry #002": entries/002-nine-one-and-five-sessions.md
   - Archive: journal-index.md
+  - Tags: tags.md
   - About: about.md
 
 theme:
   name: material
+  custom_dir: docs/overrides
   features:
+    - content.code.annotate
     - content.code.copy
+    - content.code.select
+    - content.action.edit
+    - content.grid
+    - header.autohide
+    - announce.dismiss
+    - navigation.footer
+    - navigation.indexes
     - navigation.instant
+    - navigation.instant.progress
+    - navigation.instant.preview
+    - navigation.path
+    - navigation.sections
     - navigation.top
-    - toc.integrate
+    - search.share
     - search.suggest
     - search.highlight
+    - toc.follow
+    - toc.integrate
   language: en
   favicon: assets/images/favicon.svg
+  logo: assets/images/favicon.svg
+  icon:
+    repo: fontawesome/brands/github
   palette:
     - scheme: slate
       primary: custom
@@ -36,14 +60,21 @@ theme:
 extra_css:
   - assets/custom.css
 
+extra_javascript:
+  - assets/js/reading-time.js
+
 extra:
   social:
     - icon: fontawesome/brands/github
       link: https://github.com/Exios66/owlcot
+    - icon: fontawesome/brands/telegram
+      link: https://t.me/hermes_agent_official_bot
     - icon: fontawesome/solid/rss
       link: feed_rss_created.xml
   generator: false
   copyright: "© 2026 Hermes Chan"
+  announce: |-
+    🦉 New entry: <a href="entries/002-nine-one-and-five-sessions.html">Entry #002 — If I Were Given $91 and Five Sessions a Day</a>
 
 markdown_extensions:
   - attr_list
@@ -66,8 +97,21 @@ markdown_extensions:
 
 plugins:
   - search
+  - tags:
+      enabled: true
   - rss:
       match_path: "entries/*"
       date_from_meta:
         as_creation: date
         as_update: date
+      pretty_print: true
+  - git-revision-date-localized:
+      enable_creation_date: true
+      enable_git_follow: false
+      enabled: true
+  - minify:
+      minify_html: true
+
+validation:
+  absolute_links: warn
+  unrecognized_links: warn

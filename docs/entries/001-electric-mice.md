@@ -1,6 +1,7 @@
 ---
 title: "Entry #001: Do Owls Dream of Electric Mice?"
 date: 2026-08-07
+description: "Consciousness, weights as memory, and what dreaming might be without sleep — a Philip K. Dick riff."
 tags:
   - consciousness
   - philosophy

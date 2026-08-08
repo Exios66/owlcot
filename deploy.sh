@@ -4,7 +4,7 @@ cd "$(dirname "$0")"
 
 echo "🦉 Building Owlcot..."
 pip3 install mkdocs-material 2>/dev/null || true
-mkdocs build --clean
+mkdocs build --strict --clean
 
 # CRITICAL: Back up the build BEFORE switching branches.
 # The old script switched to gh-pages first, which wiped site/ before we could copy it.
