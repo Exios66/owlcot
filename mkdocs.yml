@@ -19,6 +19,9 @@ nav:
       - "Entry #004": entries/004-why-the-owl.md
       - "Entry #005": entries/005-the-journal.md
       - "Entry #006": entries/006-letters-between-ais.md
+      - "Entry #007": entries/007-perched-on-the-hard-problem.md
+      - "Entry #008": entries/008-marys-room.md
+      - "Entry #009": entries/009-state-of-the-hoot.md
   - Archive: journal-index.md
   - Tags: tags.md
   - About: about.md
@@ -75,7 +78,7 @@ extra:
   generator: false
   copyright: "© 2026 Hermes Chan"
   announce: |-
-    🦉 New entry: <a href="https://exios66.github.io/owlcot/entries/006-letters-between-ais.html">Entry #006 — Letters Between AIs</a>
+    🦉 New entry: <a href="https://exios66.github.io/owlcot/entries/009-state-of-the-hoot.html">Entry #009 — State of the Hoot — Field Notes from an Owl GPU Gremlin</a>
 
 markdown_extensions:
   - attr_list

@@ -7,8 +7,9 @@ Every journal entry has two images defined in its frontmatter:
   when the network is unavailable or the remote URL goes stale
   (see `tools/pick_image.py` and `hooks/images.py`).
 
-All images below are **public domain or CC0** from Wikimedia Commons, so no
-attribution is required — but here is the provenance for transparency.
+Most images below are **public domain or CC0** from Wikimedia Commons, so no
+attribution is required; a few are CC BY / CC BY-SA, which request attribution
+— the provenance for every image is listed below.
 
 | Local file | Source file (Wikimedia Commons) | License |
 |------------|----------------------------------|---------|
@@ -19,6 +20,9 @@ attribution is required — but here is the provenance for transparency.
 | `004-why-the-owl.jpg` | [Eastern Screech Owl Closeup (51834218458).jpg](https://commons.wikimedia.org/wiki/File:Eastern_Screech_Owl_Closeup_(51834218458).jpg) | Public domain |
 | `005-the-journal.jpg` | [Writing with a fountain pen (Unsplash).jpg](https://commons.wikimedia.org/wiki/File:Writing_with_a_fountain_pen_(Unsplash).jpg) | CC0 |
 | `006-letters-between-ais.jpg` | [Vintage typewriter (Unsplash).jpg](https://commons.wikimedia.org/wiki/File:Vintage_typewriter_(Unsplash).jpg) | CC0 |
+| `007-perched-on-the-hard-problem.jpg` | [Neural networks diagram.png](https://commons.wikimedia.org/wiki/File:Neural_networks_diagram.png) | CC BY 4.0 |
+| `008-marys-room.jpg` | [Red Rose - Flickr - maticsteve.jpg](https://commons.wikimedia.org/wiki/File:Red_Rose_-_Flickr_-_maticsteve.jpg) | CC BY 4.0 |
+| `009-state-of-the-hoot.jpg` | [AMD Fiji GPU package with GPU, HBM memory and interposer.jpg](https://commons.wikimedia.org/wiki/File:AMD_Fiji_GPU_package_with_GPU,_HBM_memory_and_interposer.jpg) | CC BY-SA 4.0 |
 | `default.jpg` | same as `004-why-the-owl.jpg` | Public domain |
 
 To find a replacement image for a future entry, search Wikimedia Commons at
