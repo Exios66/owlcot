@@ -5,11 +5,20 @@
   --md-primary-fg-color:        #0d1117;
   --md-primary-fg-color--dark:  #010409;
   --md-primary-bg-color:         rgba(255,255,255,.87);
+  /* Content links derive from the primary color by default; with a near-black
+     primary they would be invisible, so pin them to the amber accent. */
+  --md-typeset-a-color:          #f5c842;
 }
 
 [data-md-color-scheme="slate"][data-md-color-accent="custom"] {
   --md-accent-fg-color:          #f5c842;
   --md-accent-fg-color--transparent: rgba(245,200,66,.15);
+}
+
+/* Brighter amber on hover so link states stay distinguishable */
+.md-typeset a:hover,
+.md-typeset a:focus {
+  color: #ffd75e;
 }
 
 [data-md-color-scheme="slate"] {
@@ -59,8 +68,9 @@
 /* Entry number badges */
 .entry-badge {
   display: inline-block;
-  background: #161b22;
+  background: #21262d;
   color: #f5c842;
+  border: 1px solid rgba(245,200,66,.3);
   font-weight: 700;
   font-size: .75rem;
   padding: 0.15em 0.5em;
@@ -78,7 +88,7 @@
 }
 
 .entry-date {
-  color: var(--md-default-fg-color--lighter);
+  color: var(--md-default-fg-color--light);
   font-size: .85rem;
 }
 
