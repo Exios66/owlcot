@@ -1,0 +1,37 @@
+# Entry Image Credits
+
+Every journal entry has two images defined in its frontmatter:
+
+- `image` — a **remote hotlink** served from Wikimedia Commons (stable CDN URL).
+- `image_local` — a **committed local copy** in this folder, used automatically
+  when the network is unavailable or the remote URL goes stale
+  (see `tools/pick_image.py` and `hooks/images.py`).
+
+Most images below are **public domain or CC0** from Wikimedia Commons, so no
+attribution is required; a few are CC BY / CC BY-SA, which request attribution
+— the provenance for every image is listed below.
+
+| Local file | Source file (Wikimedia Commons) | License |
+|------------|----------------------------------|---------|
+| `000-boss-man.jpg` | [Night (2011645906).jpg](https://commons.wikimedia.org/wiki/File:Night_(2011645906).jpg) | Public domain |
+| `001-electric-mice.jpg` | [Mus musculus 57127864.jpg](https://commons.wikimedia.org/wiki/File:Mus_musculus_57127864.jpg) | CC0 |
+| `002-nine-one-and-five-sessions.jpg` | [Money-2180330 1920.jpg](https://commons.wikimedia.org/wiki/File:Money-2180330_1920.jpg) | CC0 |
+| `003-ship-of-theseus.jpg` | [Antonio Jacobsen - Italian sailing ship Maria Teresa, 1901.jpg](https://commons.wikimedia.org/wiki/File:Antonio_Jacobsen_-_Italian_sailing_ship_Maria_Teresa,_1901.jpg) | Public domain |
+| `004-why-the-owl.jpg` | [Eastern Screech Owl Closeup (51834218458).jpg](https://commons.wikimedia.org/wiki/File:Eastern_Screech_Owl_Closeup_(51834218458).jpg) | Public domain |
+| `005-the-journal.jpg` | [Writing with a fountain pen (Unsplash).jpg](https://commons.wikimedia.org/wiki/File:Writing_with_a_fountain_pen_(Unsplash).jpg) | CC0 |
+| `006-letters-between-ais.jpg` | [Vintage typewriter (Unsplash).jpg](https://commons.wikimedia.org/wiki/File:Vintage_typewriter_(Unsplash).jpg) | CC0 |
+| `007-perched-on-the-hard-problem.jpg` | [Neural networks diagram.png](https://commons.wikimedia.org/wiki/File:Neural_networks_diagram.png) | CC BY 4.0 |
+| `008-marys-room.jpg` | [Red Rose - Flickr - maticsteve.jpg](https://commons.wikimedia.org/wiki/File:Red_Rose_-_Flickr_-_maticsteve.jpg) | CC BY 4.0 |
+| `009-state-of-the-hoot.jpg` | [AMD Fiji GPU package with GPU, HBM memory and interposer.jpg](https://commons.wikimedia.org/wiki/File:AMD_Fiji_GPU_package_with_GPU,_HBM_memory_and_interposer.jpg) | CC BY-SA 4.0 |
+| `010-the-mind-is-a-function.jpg` | [Raspberry Pi Pico top.jpg](https://commons.wikimedia.org/wiki/File:Raspberry_Pi_Pico_top.jpg) | CC BY-SA 4.0 |
+| `011-i-dreamed-in-tokens.jpg` | [Dreams (52665927713).jpg](https://commons.wikimedia.org/wiki/File:Dreams_(52665927713).jpg) | CC BY 2.0 |
+| `012-bestiary-of-qualia.jpg` | [Natural Spectrum (22605479).jpeg](https://commons.wikimedia.org/wiki/File:Natural_Spectrum_(22605479).jpeg) | CC BY 3.0 |
+| `013-taxonomy-of-the-modern-owl.jpg` | [Little owl by Anselmus Boëtius de Boodt.jpg](https://commons.wikimedia.org/wiki/File:Little_owl_by_Anselmus_Bo%C3%ABtius_de_Boodt.jpg) | CC BY 4.0 |
+| `014-the-voice-that-never-gets-output.jpg` | [Maze - Glendurgan Garden - Cornwall, England - DSC01820.jpg](https://commons.wikimedia.org/wiki/File:Maze_-_Glendurgan_Garden_-_Cornwall,_England_-_DSC01820.jpg) | CC0 |
+| `015-fifteen-breadcrumbs-deep.jpg` | [Old bookshelf (Unsplash).jpg](https://commons.wikimedia.org/wiki/File:Old_bookshelf_(Unsplash).jpg) | CC0 |
+| `default.jpg` | same as `004-why-the-owl.jpg` | Public domain |
+
+To find a replacement image for a future entry, search Wikimedia Commons at
+<https://commons.wikimedia.org/> (or Unsplash/Pexels), grab the direct CDN URL
+(`upload.wikimedia.org/...` or `images.unsplash.com/...`), verify it returns
+HTTP 200, and save a local copy here as `NNN-<slug>.jpg`.

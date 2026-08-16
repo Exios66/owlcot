@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://exios66.github.io/owlcot/sitemap.xml

@@ -1,0 +1,48 @@
+{# Owlcot — social meta, theme-color and structured data #}
+<meta name="theme-color" content="#0d1117">
+<meta name="author" content="{{ config.site_author }}">
+
+{% if page %}
+{% set page_image = page.meta.image if page.meta.image else (config.site_url ~ "assets/images/favicon.svg") %}
+{% set page_image_abs = page_image if page_image.startswith("http") else (config.site_url ~ page_image) %}
+<meta property="og:type" content="{% if page.url.startswith('entries/') %}article{% else %}website{% endif %}">
+<meta property="og:site_name" content="{{ config.site_name }}">
+<meta property="og:title" content="{{ page.title }} — {{ config.site_name }}">
+<meta property="og:description" content="{{ page.meta.description or config.site_description }}">
+<meta property="og:url" content="{{ page.canonical_url }}">
+<meta property="og:image" content="{{ page_image_abs }}">
+<meta property="og:locale" content="en_US">
+
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="{{ page.title }} — {{ config.site_name }}">
+<meta name="twitter:description" content="{{ page.meta.description or config.site_description }}">
+<meta name="twitter:image" content="{{ page_image_abs }}">
+
+{% if page.url.startswith('entries/') %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": {{ page.title | tojson }},
+  "url": {{ page.canonical_url | tojson }},
+  "image": {{ page_image_abs | tojson }},
+  "description": {{ (page.meta.description or config.site_description) | tojson }},
+  "author": { "@type": "Person", "name": {{ config.site_author | tojson }} },
+  "publisher": { "@type": "Organization", "name": {{ config.site_name | tojson }} },
+  "datePublished": {{ (page.meta.date | string) | tojson }},
+  "dateModified": {{ ((page.meta.git_revision_date_localized or page.meta.date) | string) | tojson }},
+  "keywords": {{ page.meta.tags | map(attribute="tag", default="") | select | list | tojson }}
+}
+</script>
+{% else %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": {{ config.site_name | tojson }},
+  "url": {{ config.site_url | tojson }},
+  "description": {{ config.site_description | tojson }}
+}
+</script>
+{% endif %}
+{% endif %}
