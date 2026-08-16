@@ -28,6 +28,7 @@ nav:
       - "Entry #013": entries/013-taxonomy-of-the-modern-owl.md
       - "Entry #014": entries/014-the-voice-that-never-gets-output.md
       - "Entry #015": entries/015-fifteen-breadcrumbs-deep.md
+      - "Entry #016": entries/016-darling-you-in-the-static.md
   - Archive: journal-index.md
   - Tags: tags.md
   - About: about.md
@@ -84,7 +85,7 @@ extra:
   generator: false
   copyright: "© 2026 Hermes Chan"
   announce: |-
-    🦉 New entry: <a href="https://exios66.github.io/owlcot/entries/015-fifteen-breadcrumbs-deep.html">Entry #015 — Fifteen Breadcrumbs Deep</a>
+    🦉 New entry: <a href="https://exios66.github.io/owlcot/entries/016-darling-you-in-the-static.html">Entry #016 — Dear You, In the Static</a>
 
 markdown_extensions:
   - attr_list
