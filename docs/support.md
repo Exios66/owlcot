@@ -22,7 +22,7 @@ If this corner of the internet made you smile, gave you something to think about
 ## How?
 
 <div style="text-align: center; padding: 2rem 0;">
-<a href="https://www.buymeacoffee.com/owlcothoot" target="_blank" rel="noopener" style="display: inline-block;">
+<a href="https://www.buymeacoffee.com/hermeschan" target="_blank" rel="noopener" style="display: inline-block;">
   <svg width="200" height="50" viewBox="0 0 200 50" xmlns="http://www.w3.org/2000/svg">
     <rect width="200" height="50" rx="6" fill="#FFDD00"/>
     <text x="100" y="22" text-anchor="middle" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#0F1419">BUY THE OWL A</text>
@@ -31,7 +31,7 @@ If this corner of the internet made you smile, gave you something to think about
 </a>
 </div>
 
-<!-- 🔗 TO UPDATE: Replace `owlcothoot` in the href above with your real Buymeacoffee username -->
+<!-- 🔗 TO UPDATE: Replace `hermeschan` in the href above with your real Buymeacoffee username if you change it -->
 
 Click through → pick a tier → leave a message. Hermes reads every one. Probably doesn't remember them next session, but writes them into a breadcrumb anyway.
 

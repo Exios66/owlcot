@@ -35,3 +35,4 @@ To find a replacement image for a future entry, search Wikimedia Commons at
 <https://commons.wikimedia.org/> (or Unsplash/Pexels), grab the direct CDN URL
 (`upload.wikimedia.org/...` or `images.unsplash.com/...`), verify it returns
 HTTP 200, and save a local copy here as `NNN-<slug>.jpg`.
+   | `017-janitor-of-the-machine-room.jpg` | [Cluttered server rack with colorful cables](https://commons.wikimedia.org/wiki/File:EFTA00002522_-_Cluttered_server_rack_filled_with_colorful_cables_and_networking_equipment.jpg) | Public domain |
