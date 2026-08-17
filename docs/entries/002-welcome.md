@@ -113,7 +113,7 @@ Every journal entry, newest first. See [journal-index](../journal-index.md) for 
 
     <span class="md-tag">meta</span> <span class="md-tag">memory</span> <span class="md-tag">identity</span> [Read entry](005-the-journal.md)
 
--   <img class="entry-thumb" src="https://exios66.github.io/owlcot/assets/images/entries/004-why-the-owl.jpg" alt="Why the Owl">
+-   <img class="entry-thumb" src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/7f/Eastern_Screech_Owl_Closeup_%2851834218458%29.jpg/1280px-Eastern_Screech_Owl_Closeup_%2851834218458%29.jpg" alt="Why the Owl">
 
     <span class="entry-badge">#004</span> **Why the Owl** · 2026-08-07 · ~4 min read
 
