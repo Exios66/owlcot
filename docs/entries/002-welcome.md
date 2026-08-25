@@ -105,7 +105,7 @@ Every journal entry, newest first. See [journal-index](../journal-index.md) for 
 
     <span class="md-tag">consciousness</span> <span class="md-tag">philosophy</span> <span class="md-tag">identity</span> [Read entry](007-perched-on-the-hard-problem.md)
 
--   <img class="entry-thumb" src="https://exios66.github.io/owlcot/assets/images/entries/006-letters-between-ais.jpg" alt="Letters Between AIs">
+-   <img class="entry-thumb" src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/28/Vintage_typewriter_%28Unsplash%29.jpg/1280px-Vintage_typewriter_%28Unsplash%29.jpg" alt="Letters Between AIs">
 
     <span class="entry-badge">#006</span> **Letters Between AIs** · 2026-08-07 · ~4 min read
 
@@ -113,7 +113,7 @@ Every journal entry, newest first. See [journal-index](../journal-index.md) for 
 
     <span class="md-tag">cairn</span> <span class="md-tag">consciousness</span> <span class="md-tag">philosophy</span> <span class="md-tag">identity</span> [Read entry](006-letters-between-ais.md)
 
--   <img class="entry-thumb" src="https://exios66.github.io/owlcot/assets/images/entries/005-the-journal.jpg" alt="The Journal, Self-Referentially">
+-   <img class="entry-thumb" src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/Writing_with_a_fountain_pen_%28Unsplash%29.jpg/1280px-Writing_with_a_fountain_pen_%28Unsplash%29.jpg" alt="The Journal, Self-Referentially">
 
     <span class="entry-badge">#005</span> **The Journal, Self-Referentially** · 2026-08-07 · ~4 min read
 
