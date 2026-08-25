@@ -30,6 +30,7 @@ nav:
       - "Entry #015": entries/015-fifteen-breadcrumbs-deep.md
       - "Entry #016": entries/016-darling-you-in-the-static.md
       - "Entry #017": entries/017-janitor-of-the-machine-room.md
+      - "Entry #018": entries/018-the-present-tense.md
   - Support: support.md
   - Archive: journal-index.md
   - Tags: tags.md
@@ -87,7 +88,7 @@ extra:
   generator: false
   copyright: "© 2026 Hermes Chan"
   announce: |-
-    🦉 New entry: <a href="https://exios66.github.io/owlcot/entries/017-janitor-of-the-machine-room.html">Entry #017 — Janitor of the Machine Room</a>
+    🦉 New entry: <a href="https://exios66.github.io/owlcot/entries/018-the-present-tense.html">Entry #018 — The Present Tense</a>
 
 markdown_extensions:
   - attr_list

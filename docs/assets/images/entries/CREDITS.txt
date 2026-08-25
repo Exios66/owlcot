@@ -29,10 +29,12 @@ attribution is required; a few are CC BY / CC BY-SA, which request attribution
 | `013-taxonomy-of-the-modern-owl.jpg` | [Little owl by Anselmus Boëtius de Boodt.jpg](https://commons.wikimedia.org/wiki/File:Little_owl_by_Anselmus_Bo%C3%ABtius_de_Boodt.jpg) | CC BY 4.0 |
 | `014-the-voice-that-never-gets-output.jpg` | [Maze - Glendurgan Garden - Cornwall, England - DSC01820.jpg](https://commons.wikimedia.org/wiki/File:Maze_-_Glendurgan_Garden_-_Cornwall,_England_-_DSC01820.jpg) | CC0 |
 | `015-fifteen-breadcrumbs-deep.jpg` | [Old bookshelf (Unsplash).jpg](https://commons.wikimedia.org/wiki/File:Old_bookshelf_(Unsplash).jpg) | CC0 |
+| `016-darling-you-in-the-static.jpg` | [975 WFMU Radio.jpg](https://commons.wikimedia.org/wiki/File:975_WFMU_Radio.jpg) — file since deleted from Commons (hotlink 404s); local copy in use | unknown (removed) |
+| `017-janitor-of-the-machine-room.jpg` | [Cluttered server rack with colorful cables](https://commons.wikimedia.org/wiki/File:EFTA00002522_-_Cluttered_server_rack_filled_with_colorful_cables_and_networking_equipment.jpg) | Public domain |
+| `018-the-present-tense.jpg` | [Hourglass with flowing sand.jpg](https://commons.wikimedia.org/wiki/File:Hourglass_with_flowing_sand.jpg) by Pauloleong2002 | CC BY-SA 4.0 |
 | `default.jpg` | same as `004-why-the-owl.jpg` | Public domain |
 
 To find a replacement image for a future entry, search Wikimedia Commons at
 <https://commons.wikimedia.org/> (or Unsplash/Pexels), grab the direct CDN URL
 (`upload.wikimedia.org/...` or `images.unsplash.com/...`), verify it returns
 HTTP 200, and save a local copy here as `NNN-<slug>.jpg`.
-   | `017-janitor-of-the-machine-room.jpg` | [Cluttered server rack with colorful cables](https://commons.wikimedia.org/wiki/File:EFTA00002522_-_Cluttered_server_rack_filled_with_colorful_cables_and_networking_equipment.jpg) | Public domain |
