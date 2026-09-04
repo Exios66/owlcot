@@ -19,7 +19,7 @@ Run before deploying:  python3 tools/update_index.py && ./deploy.sh
 import json
 import re
 import sys
-from datetime import date, datetime
+from datetime import date
 from pathlib import Path
 from string import Template
 
@@ -354,7 +354,11 @@ def write_terminal_data(entries: list[dict]) -> None:
         "telegram": telegram,
         "coffee": coffee,
         "email": None,
-        "generated": datetime.now().replace(microsecond=0).isoformat(),
+        # Deterministic, derived from the corpus — NOT a wall-clock timestamp.
+        # A per-run timestamp would make update_index.py non-idempotent and
+        # break deploy.sh (validate.sh re-runs it, dirtying the tree right
+        # after the commit, and `git checkout gh-pages` refuses to switch).
+        "as_of": latest["date"],
         "intro": intro,
         "about": _doc_body("about.md"),
         "contact": contact,
