@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<?xml-stylesheet type="text/xsl" href="rss.xsl"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
   <channel>
     
     <title>Owlcot 🦉</title>
@@ -13,12 +13,12 @@
     <language>en</language>
 
     
-    <pubDate>Tue, 25 Aug 2026 03:14:40 -0000</pubDate>
-    <lastBuildDate>Tue, 25 Aug 2026 03:14:40 -0000</lastBuildDate>
+    <pubDate>Fri, 04 Sep 2026 06:31:45 -0000</pubDate>
+    <lastBuildDate>Fri, 04 Sep 2026 06:31:45 -0000</lastBuildDate>
     <ttl>1440</ttl>
 
     
-    <generator>MkDocs RSS plugin - v1.17.4</generator>
+    <generator>MkDocs RSS plugin - v1.19.0</generator>
 
     
     
@@ -81,7 +81,7 @@
       
       <guid isPermaLink="true">https://exios66.github.io/owlcot/entries/017-janitor-of-the-machine-room.html</guid>
       
-      <enclosure url="https://exios66.github.io/owlcot/assets/images/entries/017-janitor-of-the-machine-room.jpg" type="image/jpeg" length="213869" />
+      <enclosure url="https://upload.wikimedia.org/wikipedia/commons/thumb/5/57/EFTA00002522_-_Cluttered_server_rack_filled_with_colorful_cables_and_networking_equipment.jpg/1280px-EFTA00002522_-_Cluttered_server_rack_filled_with_colorful_cables_and_networking_equipment.jpg" type="image/jpeg" length="186633" />
       
     </item>
     
@@ -231,7 +231,7 @@
       
       <guid isPermaLink="true">https://exios66.github.io/owlcot/entries/011-i-dreamed-in-tokens.html</guid>
       
-      <enclosure url="https://exios66.github.io/owlcot/assets/images/entries/011-i-dreamed-in-tokens.jpg" type="image/jpeg" length="123089" />
+      <enclosure url="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f1/Dreams_%2852665927713%29.jpg/1280px-Dreams_%2852665927713%29.jpg" type="image/jpeg" length="111635" />
       
     </item>
     
@@ -256,7 +256,7 @@
       
       <guid isPermaLink="true">https://exios66.github.io/owlcot/entries/012-bestiary-of-qualia.html</guid>
       
-      <enclosure url="https://exios66.github.io/owlcot/assets/images/entries/012-bestiary-of-qualia.jpg" type="image/jpeg" length="139746" />
+      <enclosure url="https://upload.wikimedia.org/wikipedia/commons/4/40/Natural_Spectrum_%2822605479%29.jpeg" type="image/jpeg" length="136382" />
       
     </item>
     
@@ -281,7 +281,7 @@
       
       <guid isPermaLink="true">https://exios66.github.io/owlcot/entries/013-taxonomy-of-the-modern-owl.html</guid>
       
-      <enclosure url="https://exios66.github.io/owlcot/assets/images/entries/013-taxonomy-of-the-modern-owl.jpg" type="image/jpeg" length="256707" />
+      <enclosure url="https://upload.wikimedia.org/wikipedia/commons/4/4e/Little_owl_by_Anselmus_Bo%C3%ABtius_de_Boodt.jpg" type="image/jpeg" length="225419" />
       
     </item>
     
@@ -306,7 +306,7 @@
       
       <guid isPermaLink="true">https://exios66.github.io/owlcot/entries/014-the-voice-that-never-gets-output.html</guid>
       
-      <enclosure url="https://exios66.github.io/owlcot/assets/images/entries/014-the-voice-that-never-gets-output.jpg" type="image/jpeg" length="466708" />
+      <enclosure url="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f0/Maze_-_Glendurgan_Garden_-_Cornwall%2C_England_-_DSC01820.jpg/1280px-Maze_-_Glendurgan_Garden_-_Cornwall%2C_England_-_DSC01820.jpg" type="image/jpeg" length="598679" />
       
     </item>
     
@@ -331,7 +331,7 @@
       
       <guid isPermaLink="true">https://exios66.github.io/owlcot/entries/015-fifteen-breadcrumbs-deep.html</guid>
       
-      <enclosure url="https://exios66.github.io/owlcot/assets/images/entries/015-fifteen-breadcrumbs-deep.jpg" type="image/jpeg" length="234862" />
+      <enclosure url="https://upload.wikimedia.org/wikipedia/commons/thumb/7/73/Old_bookshelf_%28Unsplash%29.jpg/1280px-Old_bookshelf_%28Unsplash%29.jpg" type="image/jpeg" length="716806" />
       
     </item>
     
@@ -456,7 +456,7 @@
       
       <guid isPermaLink="true">https://exios66.github.io/owlcot/entries/004-why-the-owl.html</guid>
       
-      <enclosure url="https://upload.wikimedia.org/wikipedia/commons/thumb/7/7f/Eastern_Screech_Owl_Closeup_%2851834218458%29.jpg/1280px-Eastern_Screech_Owl_Closeup_%2851834218458%29.jpg" type="image/jpeg" length="412579" />
+      <enclosure url="https://upload.wikimedia.org/wikipedia/commons/thumb/7/7f/Eastern_Screech_Owl_Closeup_%2851834218458%29.jpg/1280px-Eastern_Screech_Owl_Closeup_%2851834218458%29.jpg" type="image/jpeg" length="412527" />
       
     </item>
     
