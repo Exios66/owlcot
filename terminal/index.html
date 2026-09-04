@@ -214,6 +214,18 @@
   .status-group { display: flex; gap: 16px; align-items: center; }
   .status-item { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
   .status-item b { color: var(--amber); font-weight: 500; }
+  .status-item a.blog-link {
+    color: var(--amber);
+    text-decoration: none;
+    border-bottom: 1px dotted rgba(255, 184, 108, 0.5);
+    padding-bottom: 1px;
+    transition: color 0.15s, text-shadow 0.15s;
+  }
+  .status-item a.blog-link:hover {
+    color: var(--amber-bright);
+    text-shadow: 0 0 8px rgba(255, 184, 108, 0.6);
+    border-bottom-color: var(--amber-bright);
+  }
   .status-item .dot {
     display: inline-block;
     width: 7px; height: 7px;
@@ -258,6 +270,7 @@
   .output::-webkit-scrollbar-track { background: transparent; }
   .output::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
   .output::-webkit-scrollbar-thumb:hover { background: var(--fg-dim); }
+  .output:focus { outline: none; }
   .line {
     margin-bottom: 2px;
     word-break: break-word;
@@ -336,6 +349,9 @@
     color: transparent;
     caret-color: transparent;
     font: inherit;
+    /* iOS zooms the viewport on focus for inputs below 16px — this input is
+       invisible, so the size only affects that zoom behavior. */
+    font-size: 16px;
     z-index: 2;
     cursor: text;
     padding: 0;
@@ -457,6 +473,8 @@
   .boot-line { color: var(--fg-dim); font-size: 0.95em; }
   .boot-line .ok { color: var(--green); font-weight: 500; }
   .boot-line .warn { color: var(--yellow); font-weight: 500; }
+  .neofetch { color: var(--fg); line-height: 1.3; margin: 6px 0; }
+  .lore-line { color: var(--fg-dim); }
   .motd {
     margin: 8px 0 6px;
     border: 1px solid var(--border);
@@ -478,9 +496,11 @@
     text-shadow: 0 0 14px rgba(255, 184, 108, 0.35);
     animation: bannerIn 0.9s ease-out both;
   }
+  /* NB: no letter-spacing animation — these are column-aligned block
+     letters and spacing changes would bend the rows. */
   @keyframes bannerIn {
-    0% { opacity: 0; filter: brightness(3); letter-spacing: 0.35em; }
-    100% { opacity: 1; filter: brightness(1); letter-spacing: normal; }
+    0% { opacity: 0; filter: brightness(3); }
+    100% { opacity: 1; filter: brightness(1); }
   }
   .owl-art { color: var(--fg); display: inline-block; }
   .owl-art .eye {
@@ -508,6 +528,13 @@
     50% { transform: translateY(-1.5px); }
   }
 
+  .theme-flash { }
+  body.theme-flash .terminal { animation: themeFlash 0.35s ease-out; }
+  @keyframes themeFlash {
+    0% { filter: brightness(1.7) saturate(1.3); }
+    100% { filter: none; }
+  }
+
   /* === FOREST SCENE (in-output) === */
   .forest-scene {
     position: relative;
@@ -518,7 +545,8 @@
       radial-gradient(ellipse 90% 55% at 50% 110%, rgba(20, 32, 26, 0.65), transparent 70%),
       linear-gradient(180deg, #070a10 0%, #0a100d 70%, #0c130f 100%);
     padding: 12px 14px 6px;
-    overflow: hidden;
+    overflow-x: auto;
+    overflow-y: hidden;
   }
   .forest-scene pre {
     font: inherit;
@@ -574,7 +602,7 @@
     .terminal { padding: 10px; }
     .status-bar { font-size: 10px; padding: 4px 10px; }
     .status-group { gap: 10px; }
-    .status-item:not(.essential):not(:first-child) { display: none; }
+    .status-item:not(.essential) { display: none; }
     .block-cursor { width: 7px; height: 15px; }
     #ambientForest { height: 26vh; }
   }
@@ -610,6 +638,7 @@
     <div class="status-group">
       <span class="status-item essential"><span class="dot" aria-hidden="true"></span>hermes@owlcot</span>
       <span class="status-item essential">pwd: <b id="statusPath">~</b></span>
+      <span class="status-item essential"><a class="blog-link" id="statusBlog" href="home.html" title="the classic blog — same words, more chrome">blog&nbsp;↗</a></span>
     </div>
     <div class="status-group">
       <span class="status-item">theme: <b id="statusTheme">amber</b></span>
@@ -742,7 +771,7 @@ COMMANDS
     search <terms>    search titles, tags and descriptions
     whoami            who is Hermes Chan?
     mail [addr]       compose a message to the owl
-    web               links to the full (non-terminal) site
+    web | blog        links to the full (non-terminal) site
     tree              show the filesystem tree
     history           show command history
     neofetch          system info, the cute way
@@ -776,7 +805,9 @@ TIPS
       cd topics/memory
       ls
     The dark forest is watching: type 'forest'.
-    The full site exists beyond the TTY: type 'web'.
+    Prefer a classic blog? Type 'web' or 'blog' — or click 'blog ↗'
+    in the status bar, top of the screen.
+    After every entry, 'cat' prints a link to its full web page.
 
 AUTHOR
     Hermes Chan — hoo.
@@ -940,15 +971,18 @@ AVAILABLE THEMES
   web: `WEB(1)
 
 NAME
-    web - links to the full non-terminal site
+    web, blog - links to the full non-terminal site
 
 SYNOPSIS
     web
+    blog
 
 DESCRIPTION
     Prints clickable links to the classic MkDocs site: the blog
     home, the full journal index, tags, about, support and the
-    RSS feed. For readers who prefer their pages with chrome.`,
+    RSS feed. For readers who prefer their pages with chrome.
+
+    'blog ↗' in the status bar jumps straight to the blog home.`,
 
   owl: `OWL(1)
 
@@ -1022,6 +1056,10 @@ if (OWL && Array.isArray(OWL.posts)) {
 }
 
 const HOME_FILES = ['README.md', '.about', '.contact', '.plan'];
+
+// The classic blog lives one hop from wherever this page is mounted:
+// stamped root copy -> 'home.html', verbatim /terminal/ copy -> '../home.html'.
+const BLOG_HREF = location.pathname.includes('/terminal/') ? '../home.html' : 'home.html';
 
 // =================== STATE ===================
 const state = {
@@ -1189,7 +1227,7 @@ function renderMarkdown(md) {
       else { flushPara(); closeLists(); out.push('<pre><code>'); inCode = true; }
       continue;
     }
-    if (inCode) { out.push(line); continue; }
+    if (inCode) { out.push(line + '\n'); continue; }
     if (line.trim() === '') { flushPara(); closeLists(); continue; }
     let m;
     if (m = line.match(/^### (.+)$/)) { flushPara(); closeLists(); out.push('<h3>' + inlineMd(m[1]) + '</h3>'); }
@@ -1214,25 +1252,32 @@ function renderMarkdown(md) {
     }
   }
   flushPara(); closeLists();
-  if (inCode) out.push('</code></pre>');
+  if (inCode) {
+    if (out.length && out[out.length - 1].endsWith('\n')) out[out.length - 1] = out[out.length - 1].replace(/\n$/, '');
+    out.push('</code></pre>');
+  }
   return out.join('');
 }
 
 // =================== FILESYSTEM ===================
+function normalizePath(base, rel) {
+  const parts = base === '~' ? [] : base.slice(2).split('/');
+  for (const seg of rel.split('/')) {
+    if (!seg || seg === '.') continue;
+    if (seg === '..') parts.pop();
+    else if (seg === '~') parts.length = 0;
+    else parts.push(seg);
+  }
+  return parts.length ? '~/' + parts.join('/') : '~';
+}
 function resolvePath(input) {
   if (!input || input === '~') return '~';
   if (input === '.') return state.cwd;
-  if (input === '..') {
-    if (state.cwd === '~') return '~';
-    if (state.cwd === '~/entries' || state.cwd === '~/topics') return '~';
-    const parts = state.cwd.split('/');
-    parts.pop();
-    return parts.length === 1 ? '~' : parts.join('/');
-  }
-  if (input.startsWith('~/')) return input.replace(/^~\/?/, '~');
-  if (input.startsWith('/')) return '~' + input;
-  if (state.cwd === '~') return '~/' + input.replace(/\/+$/, '');
-  return state.cwd + '/' + input.replace(/\/+$/, '');
+  let base = state.cwd;
+  let rest = input;
+  if (input.startsWith('~/')) { base = '~'; rest = input.slice(2); }
+  else if (input.startsWith('/')) { base = '~'; rest = input.slice(1); }
+  return normalizePath(base, rest);
 }
 function isDir(path) {
   if (path === '~' || path === '~/entries' || path === '~/topics') return true;
@@ -1300,7 +1345,7 @@ function getCandidates(word, isFirst, cmd) {
   let candidates = [];
   if (isFirst) candidates = Object.keys(COMMANDS).sort();
   else if (cmd === 'cat' || cmd === 'ls' || cmd === 'open') candidates = fileCandidates(cmd);
-  else if (cmd === 'cd') candidates = fileCandidates('cd').concat(['..', '~']);
+  else if (cmd === 'cd') candidates = [...new Set(fileCandidates('cd').concat(['..', '~']))];
   else if (cmd === 'read') candidates = POSTS && POST_NAMES.length ? POST_NAMES.map(n => String(POSTS[n].num)) : [];
   else if (cmd === 'man' || cmd === 'help') candidates = [...new Set(Object.keys(MAN_PAGES).concat(Object.keys(COMMANDS)))];
   else if (cmd === 'theme') candidates = Object.keys(THEMES);
@@ -1406,7 +1451,7 @@ function printManPage(text) {
   div.className = 'line man-page';
   output.appendChild(div);
   scrollBottom();
-  typeOutText(text, div, 3);
+  typeOutText(text, div, 1.4);
 }
 
 // =================== FIREFLIES & FOREST FX ===================
@@ -1452,12 +1497,13 @@ function setForest(on) {
   savePrefs();
 }
 function scheduleShootingStar(scene) {
+  if (reduced()) return;
   setTimeout(() => {
     if (!scene.isConnected) return;
     const s = document.createElement('span');
     s.className = 'shooting-star';
     s.style.top = (4 + Math.random() * 28) + '%';
-    s.style.left = (8 + Math.random() * 55) + '%';
+    s.style.left = (6 + Math.random() * 38) + '%';
     scene.appendChild(s);
     setTimeout(() => s.remove(), 1500);
     scheduleShootingStar(scene);
@@ -1500,8 +1546,10 @@ COMMANDS.ls = (args) => {
 
 function catPost(p) {
   const tags = (p.tags || []).join(', ');
-  printRaw('<div class="file-header"><span class="dim">' + '─'.repeat(74) + '</span>\n  <span class="amber">entries/' + escapeHtml(p.name) + '</span>'
+  const badge = (p.num != null) ? '#' + String(p.num).padStart(3, '0') + ' — ' : '';
+  printRaw('<div class="file-header"><span class="dim">' + '─'.repeat(74) + '</span>\n  <span class="amber">' + escapeHtml(p.name) + '</span>'
     + (p.date ? ' <span class="dim">· ' + escapeHtml(p.date) + ' · ~' + p.readTime + ' min' + (tags ? ' · ' + escapeHtml(tags) : '') + '</span>' : '')
+    + '\n  <span class="amber" style="font-weight:600">' + escapeHtml(badge + (p.title || '')) + '</span>'
     + '\n<span class="dim">' + '─'.repeat(74) + '</span></div>');
   printRaw('<div class="post">' + renderMarkdown(p.content) + '</div>');
   if (p.url) {
@@ -1632,7 +1680,7 @@ COMMANDS.forest = async (args) => {
     return;
   }
   printRaw('<div class="forest-scene"><pre>' + FOREST + '</pre><div class="lore dim"></div></div>');
-  const scene = output.lastElementChild;
+  const scene = output.lastElementChild.querySelector('.forest-scene');
   spawnFireflies(scene, 8);
   scheduleShootingStar(scene);
   scrollBottom();
@@ -1720,9 +1768,11 @@ COMMANDS.web = () => {
   ];
   print('the full site exists beyond the terminal. click through:');
   links.forEach(([label, url]) => {
-    print('  <span class="amber">' + label.padEnd(16, ' ') + '</span> <a class="cyan" href="' + escapeHtml(url) + '" target="_blank" rel="noopener">' + escapeHtml(url) + '</a>');
+    print('  <span class="amber">' + label.padEnd(16, ' ') + '</span> <a class="cyan" href="' + escapeHtml(url) + '" target="_blank" rel="noopener">' + escapeHtml(url) + '</a>');
   });
+  print('<span class="dim">tip: the blog home is also one click away — <a class="cyan" href="' + BLOG_HREF + '">blog ↗</a> in the status bar.</span>');
 };
+COMMANDS.blog = COMMANDS.web;
 
 COMMANDS.echo = (args) => print(escapeHtml(args.join(' ')));
 COMMANDS.date = () => print(new Date().toString());
@@ -1798,7 +1848,13 @@ function submitCommand(raw) {
   const cmd = parts[0];
   const args = parts.slice(1);
   if (COMMANDS[cmd]) {
-    try { COMMANDS[cmd](args); }
+    try {
+      const r = COMMANDS[cmd](args);
+      // async commands (owl, hoot, forest) must not leak unhandled rejections
+      if (r && typeof r.catch === 'function') {
+        r.catch(e => { print('<span class="error">internal error: ' + escapeHtml(e.message) + '</span>'); console.error(e); });
+      }
+    }
     catch (e) { print('<span class="error">internal error: ' + escapeHtml(e.message) + '</span>'); console.error(e); }
   } else {
     print('<span class="error shake">' + cmd + ': command not found</span>');
@@ -1924,7 +1980,7 @@ function printMotd() {
     + '<p><span class="amber" style="font-weight:600">owlcot</span> <span class="dim">—</span> a journal that behaves like a terminal.</p>'
     + '<p>type <span class="success">help</span> for the manual · <span class="success">ls</span> to look around · <span class="success">cat README.md</span> to begin</p>'
     + '<p>type <span class="success">forest</span> to enter the dark forest · <span class="success">owl</span> to summon the resident · <span class="success">neofetch</span> for fun</p>'
-    + '<p><span class="dim">the full site exists beyond the TTY — type \'web\'.</span></p>'
+    + '<p>the same words live as a classic blog — type <span class="success">web</span> or <span class="success">blog</span>, or click <a class="blog-link" href="' + BLOG_HREF + '">blog&nbsp;↗</a> above</p>'
     + '</div>';
   printRaw(hint);
 }
@@ -1950,6 +2006,7 @@ async function boot() {
   document.getElementById('crtOverlay').style.opacity = state.crt ? '1' : '0';
   $('statusCrt').textContent = state.crt ? 'on' : 'off';
   $('statusSound').textContent = state.sound ? 'on' : 'off';
+  $('statusBlog').href = BLOG_HREF;
   updatePrompt();
   initAmbientForest();
 
@@ -1985,6 +2042,8 @@ async function boot() {
 
   const hello = print('<span class="dim"></span>', 'lore-line');
   await typeOutText('you are here because you typed something, once. welcome back.', hello, 14, false);
+  const tip = print('<span class="dim"></span>', 'lore-line');
+  await typeOutText('prefer the classic blog? type \'web\' — or click blog ↗ in the status bar.', tip, 12, false);
 
   cmdInput.focus();
 }
