@@ -36,6 +36,16 @@ check site/feed_rss_created.xml
 check site/assets/images/favicon.svg
 check site/assets/js/reading-time.js
 check site/entries/002-nine-one-and-five-sessions.html
+check site/home.html
+check site/data.js
+check site/terminal/index.html
+check site/terminal/data.js
+
+# The site ROOT must be the terminal (hooks/terminal.py stamps it after build).
+if ! grep -q "owlcot" site/index.html || ! grep -q "terminal" site/index.html; then
+  echo "  ✗ site/index.html is not the terminal page (did hooks/terminal.py run?)"
+  FAIL=1
+fi
 
 if grep -rq "PLACEHOLDER" site/; then
   echo "  ✗ PLACEHOLDER text leaked into the build"

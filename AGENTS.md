@@ -22,11 +22,16 @@ repo — especially before adding a post or deploying.
 │   ├── pick_image.py     # Shared remote-vs-local thumbnail picker (network probe)
 │   └── fix_feed_lengths.py # Post-build RSS fixup: fills in <enclosure length>
 ├── hooks/
-│   └── images.py         # MkDocs hook: resolves per-page RSS/og images with offline fallback
+│   ├── images.py         # MkDocs hook: resolves per-page RSS/og images with offline fallback
+│   └── terminal.py       # MkDocs hook: stamps the terminal as site root index.html after build
 └── docs/                 # docs_dir — all content and assets
-    ├── index.md          # Home: hero, latest entry, archive list (AUTO-GENERATED sections)
+    ├── home.md           # Material blog home: hero, latest entry, archive (AUTO-GENERATED sections)
+    ├── terminal.md       # Nav stub — redirects to the site root (nav items must be .md pages)
     ├── journal-index.md  # Full corpus ledger (AUTO-GENERATED)
     ├── support.md        # Hand-maintained page; its nav entry lives outside the Entries block
+    ├── terminal/         # THE LANDING PAGE — standalone TTY, zero Material chrome
+    │   ├── index.html    # The terminal itself (inline CSS/JS) — hand-edited
+    │   └── data.js       # Its JSON database (AUTO-GENERATED from entries by update_index.py)
     ├── tags.md, about.md, robots.txt
     ├── entries/          # The blog posts
     │   ├── 002-welcome.md  # "All Entries" index page (AUTO-GENERATED) — do not hand-edit
@@ -63,9 +68,12 @@ The one command that keeps *everything* consistent is `tools/update_index.py`.
 Every time you run it (or validate.sh / deploy.sh, which run it first) it
 regenerates, newest-first, from the entry frontmatter:
 
-- `docs/index.md` — Latest-Entry featured card + Archive list + hero stats
+- `docs/home.md` — Latest-Entry featured card + Archive list + hero stats
+  (the Material blog home, served at `/home.html`)
 - `docs/entries/002-welcome.md` — "All Entries" grid cards
 - `docs/journal-index.md` — full ledger table
+- `docs/terminal/data.js` — the JSON database the terminal landing page loads
+  (posts with full markdown bodies, topics, about/contact/plan)
 - `mkdocs.yml` — the `nav:` Entries section **and** the `extra.announce`
   banner (see below)
 
@@ -74,9 +82,43 @@ frontmatter — there is nothing to hand-edit for the feed to update.
 
 Ownership scope: the tool owns exactly two things in `mkdocs.yml` — the
 `Entries:` block of `nav:` and the `extra.announce` banner. Every other nav
-item (`Support`, `Archive`, `Tags`, `About`) and top-level pages like
-`docs/support.md` are hand-maintained; the tool's nav regex only touches the
-`Entries:` section and leaves the rest of the file alone.
+item (`Home`, `Terminal`, `Support`, `Archive`, `Tags`, `About`) and
+top-level pages like `docs/support.md` are hand-maintained; the tool's nav
+regex only touches the `Entries:` section and leaves the rest of the file
+alone.
+
+### The terminal at the site root
+
+https://exios66.github.io/owlcot/ is an **interactive terminal**, not a
+Material page. It is `docs/terminal/index.html` — fully standalone (inline
+CSS/JS, no theme chrome), so edit that file directly. Facts that matter:
+
+- `hooks/terminal.py` (`on_post_build`) copies it over the generated
+  `site/index.html` — and copies `docs/terminal/data.js` to `site/data.js` —
+  after **every** build (including `mkdocs serve`, so local preview shows
+  the terminal at `/`). The Material home is not lost: it lives at
+  `/home.html` (nav "Home"; the header logo links to the root via
+  `extra.homepage`).
+- `data.js` defines `window.OWL_DATA` and is **AUTO-GENERATED** — never
+  hand-edit it. It loads via a relative `<script src="data.js">`, so the
+  same page works both at the stamped root and at the verbatim MkDocs copy
+  `/terminal/index.html`.
+- The nav item "Terminal" is `docs/terminal.md`, a stub that redirects to
+  the root (MkDocs nav entries must be markdown pages; the terminal is a
+  static file).
+- The TTY supports: `help ls cat cd pwd whoami mail web open read search
+  tree history neofetch motd date echo uname theme crt sound forest owl
+  hoot` + easter eggs (`sudo`, `rm`, `vim`, …). `cd topics/<tag>` filters
+  entries by tag; `cat` renders markdown and prints an "open full page"
+  link to the Material page; `web` lists links back to the classic site.
+  Dark-forest extras: `forest` renders an animated ASCII scene (fireflies,
+  shooting stars, owl with blinking eyes); `forest on|off` toggles the
+  ambient treeline layer; `owl`/`hoot` summon blinking ASCII owls. All
+  animations respect `prefers-reduced-motion`.
+- The Material palette in `docs/assets/custom.css` mirrors the terminal:
+  bg `#050709`, amber `#ffb86c` accents, cyan `#67e8f9` links, phosphor
+  `#a3e635` inline code, mono headings, and a blinking block cursor in the
+  header title.
 
 ---
 
@@ -133,8 +175,9 @@ Rules that keep the pipeline happy:
 python3 tools/update_index.py
 ```
 
-This updates `index.md`, `002-welcome.md`, `journal-index.md`, the nav, and —
-importantly — **rewrites the announcement banner** to point at your new entry
+This updates `home.md`, `002-welcome.md`, `journal-index.md`,
+`docs/terminal/data.js`, the nav, and — importantly — **rewrites the
+announcement banner** to point at your new entry
 (`🦉 New entry: Entry #007 …`). Because the banner text changes, Material's
 dismiss logic shows it again to returning visitors. You never edit the banner
 by hand anymore.
@@ -294,6 +337,8 @@ The `🦉 New entry: …` banner at the top is defined in `mkdocs.yml`
 | Symptom | Cause / fix |
 |---|---|
 | `git checkout gh-pages` fails in deploy.sh | Uncommitted changes on `main`. Commit first (section 3.5). |
+| The site root shows a terminal, not the blog | By design — `hooks/terminal.py` stamps it. The Material home lives at `/home.html`. |
+| Terminal boots with "entry database not loaded" | `data.js` missing/stale — run `python3 tools/update_index.py` (it regenerates `docs/terminal/data.js`). |
 | `site/` vanished after a deploy | Expected — it's gitignored; deploy.sh restores it from the `/tmp` backup. |
 | Build logs `Remote image is not reachable … 429` | Wikimedia rate-limiting the length probe — harmless; `tools/fix_feed_lengths.py` fixes the feed afterwards. |
 | `length="None"` in a feed | Fixup didn't run or the image is new — run `python3 tools/fix_feed_lengths.py` (or full `tools/validate.sh`). |
@@ -306,10 +351,11 @@ The `🦉 New entry: …` banner at the top is defined in `mkdocs.yml`
 
 ### Never do these
 
-- Don't hand-edit `docs/entries/002-welcome.md`, `docs/index.md` generated
+- Don't hand-edit `docs/entries/002-welcome.md`, `docs/home.md` generated
   sections (between the `BEGIN_…`/`END_…` markers), `docs/journal-index.md`,
-  or the `Entries:` nav block / `announce:` banner in `mkdocs.yml` — the
-  index tool owns them (other nav items are safe to edit).
+  `docs/terminal/data.js`, or the `Entries:` nav block / `announce:` banner
+  in `mkdocs.yml` — the index tool owns them (other nav items are safe to
+  edit).
 - Don't commit to `gh-pages` directly.
 - Don't hotlink Google Images (section 4).
 
@@ -322,5 +368,5 @@ python3 tools/update_index.py     # regenerate cards/nav/banner from entries
 tools/validate.sh                 # full local check (indexes + strict build + artifacts)
 ./deploy.sh "Deploy — Entry #007" # validate, build, push to gh-pages, restore site/
 python3 tools/fix_feed_lengths.py # (auto-run) fix any RSS enclosure lengths
-mkdocs serve                      # local preview — run update_index.py first so nav/home include new entries
+mkdocs serve                      # local preview — root is the terminal; run update_index.py first so nav/home include new entries
 ```

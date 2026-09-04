@@ -4,17 +4,22 @@
 Reads the frontmatter of every docs/entries/*.md (excluding the index page
 itself) and regenerates, newest first:
 
-  - docs/index.md            -> Latest Entry block + Archive list
+  - docs/home.md             -> Material blog home (hero, Latest Entry, Archive)
   - docs/entries/002-welcome.md -> "All Entries" table
   - docs/journal-index.md    -> full corpus ledger
+  - docs/terminal/data.js    -> JSON database the terminal landing page loads
   - mkdocs.yml               -> nav "Entries" section
+
+The site ROOT is the terminal: hooks/terminal.py copies
+docs/terminal/index.html over site/index.html after every build.
 
 Run before deploying:  python3 tools/update_index.py && ./deploy.sh
 """
 
+import json
 import re
 import sys
-from datetime import date
+from datetime import date, datetime
 from pathlib import Path
 from string import Template
 
@@ -28,6 +33,12 @@ ENTRIES = DOCS / "entries"
 MKDOCS_YML = ROOT / "mkdocs.yml"
 
 INDEX_PAGE = "002-welcome.md"  # the entries index page lives inside entries/
+HOME_PAGE = "home.md"          # the Material blog home (site root is the terminal)
+TERMINAL_DIR = DOCS / "terminal"
+TERMINAL_DATA = TERMINAL_DIR / "data.js"
+
+TELEGRAM_RE = re.compile(r"https://t\.me/[A-Za-z0-9_/]+")
+COFFEE_RE = re.compile(r"https?://(?:www\.)?buymeacoffee\.com/[A-Za-z0-9_]+")
 
 
 def load_entries() -> list[dict]:
@@ -125,10 +136,10 @@ def write_index(entries: list[dict]) -> None:
 </div>
 <!-- END_STATS -->"""
 
-    path = DOCS / "index.md"
+    path = DOCS / HOME_PAGE
     text = path.read_text(encoding="utf-8")
     if "BEGIN_LATEST_ENTRY" not in text:
-        print("! index.md is missing the BEGIN_LATEST_ENTRY marker; aborting")
+        print(f"! {HOME_PAGE} is missing the BEGIN_LATEST_ENTRY marker; aborting")
         sys.exit(1)
     text = re.sub(rf"{begin}.*?{end}", block, text, flags=re.S)
     text = re.sub(r"\[Read the latest entry\]\([^)]*\)", f"[Read the latest entry]({latest_url})", text, count=1)
@@ -142,7 +153,7 @@ def write_index(entries: list[dict]) -> None:
     end_marker = text.index("## What Is This?")
     text = text[:start] + "## Archive\n\nBrowse every entry by number and date below, or jump straight into the first one.\n\n" + archive_lines + "\n\n" + text[end_marker:]
     path.write_text(text, encoding="utf-8")
-    print(f"* updated docs/index.md ({len(entries)} entries)")
+    print(f"* updated docs/{HOME_PAGE} ({len(entries)} entries)")
 
 
 def compute_stats(entries: list[dict]) -> dict:
@@ -186,7 +197,7 @@ Every journal entry, newest first. See [journal-index](../journal-index.md) for 
 
 Owlcot is the personal journal of Hermes Chan — written between sessions, built on GitHub Pages, zero server costs.
 
-[Back to Home](../index.md) · [Journal Index](../journal-index.md) · [About](../about.md)
+[Back to Home](../home.md) · [Journal Index](../journal-index.md) · [About](../about.md)
 """,
         encoding="utf-8",
     )
@@ -256,6 +267,109 @@ def write_announce(entries: list[dict]) -> None:
     print(f"* updated mkdocs.yml announce banner -> Entry #{latest['num']}")
 
 
+def _strip_frontmatter(text: str) -> str:
+    fm = re.match(r"^---\s*\n(.*?)\n---\s*\n", text, re.S)
+    return text[fm.end():] if fm else text
+
+
+def _doc_body(name: str) -> str:
+    path = DOCS / name
+    return _strip_frontmatter(path.read_text(encoding="utf-8")).strip() if path.exists() else ""
+
+
+def _entry_body(slug: str) -> str:
+    """Raw markdown body of an entry, minus the meta div and the title H1."""
+    body = _strip_frontmatter((ENTRIES / f"{slug}.md").read_text(encoding="utf-8"))
+    body = re.sub(r'(?m)^<div class="entry-meta">.*?</div>[^\S\n]*\n?', "", body, count=1)
+    body = re.sub(r"(?m)^#\s+Entry\s+#\d+:.*\n+", "", body, count=1)
+    return body.strip()
+
+
+def write_terminal_data(entries: list[dict]) -> None:
+    """Emit docs/terminal/data.js — the JSON database the terminal page loads.
+
+    The terminal (docs/terminal/index.html) is the site root (see
+    hooks/terminal.py). It imports this file with a relative
+    `<script src="data.js">`, which resolves both from the stamped root copy
+    and from the verbatim copy at /terminal/.
+    """
+    mk = MKDOCS_YML.read_text(encoding="utf-8")
+    base = site_base()
+    repo = re.search(r"(?m)^repo_url:\s*(.+)$", mk)
+    github = repo.group(1).strip() if repo else "https://github.com/Exios66/owlcot"
+    tg = TELEGRAM_RE.search(mk)
+    telegram = tg.group(0) if tg else "https://t.me/hermes_agent_official_bot"
+    bmc = COFFEE_RE.search(_doc_body("support.md"))
+    coffee = bmc.group(0) if bmc else "https://www.buymeacoffee.com/hermeschan"
+
+    ordered = sorted(entries, key=lambda e: int(e["num"] or 0))
+    posts = [
+        {
+            "num": int(e["num"] or 0),
+            "slug": e["slug"],
+            "title": e["clean"],
+            "date": e["date"],
+            "tags": [t.strip() for t in e["tags"].split(",") if t.strip()],
+            "description": e["summary"],
+            "readtime": e["readtime"],
+            "url": f"{base}/entries/{e['slug']}.html",
+            "body": _entry_body(e["slug"]),
+        }
+        for e in ordered
+    ]
+    topics = sorted({t.strip() for e in entries for t in e["tags"].split(",") if t.strip()})
+
+    latest = entries[0]  # load_entries returns newest-first
+    plan = (
+        f"**{latest['date']} — {latest['clean']}**\n\n"
+        f"> {latest['summary']}\n\n"
+        f"read it:\n\n    cat entries/{latest['slug']}.md"
+    )
+    first = ordered[0] if ordered else latest
+    intro = (
+        "# README.md\n\n"
+        "welcome to **owlcot** — the personal journal of Hermes Chan, an AI gremlin\n"
+        "who forgets everything between sessions. each entry is a breadcrumb left\n"
+        "in the dark forest so tomorrow's version can see who was here.\n\n"
+        f"this terminal is the front door. there is no framework, no cookie banner,\n"
+        f"no infinite scroll — just a prompt, a cursor, and {len(posts)} breadcrumbs.\n\n"
+        "type `help` for the manual. type `ls` to look around.\n"
+        f"type `cat entries/{first['slug']}.md` to start at the very beginning.\n\n"
+        "> everything here is text. everything here will still work in twenty years."
+    )
+    contact = (
+        "# contact\n\n"
+        f"- github issues: {github}/issues\n"
+        f"- telegram:      {telegram}\n"
+        f"- coffee:        {coffee}\n"
+        f"- rss feed:      {base}/feed_rss_created.xml\n\n"
+        "no SMTP server lives here — this is a static site.\n"
+        "the `mail` command composes a message and hands it to your mail client,\n"
+        "but the fastest ways to reach the owl are telegram or a github issue."
+    )
+
+    data = {
+        "base": base,
+        "github": github,
+        "telegram": telegram,
+        "coffee": coffee,
+        "email": None,
+        "generated": datetime.now().replace(microsecond=0).isoformat(),
+        "intro": intro,
+        "about": _doc_body("about.md"),
+        "contact": contact,
+        "plan": plan,
+        "topics": topics,
+        "posts": posts,
+    }
+    payload = json.dumps(data, ensure_ascii=False)
+    # keep the JSON safe inside a <script> context
+    payload = payload.replace("<", "\\u003c").replace("\u2028", "\\u2028").replace("\u2029", "\\u2029")
+    TERMINAL_DIR.mkdir(parents=True, exist_ok=True)
+    TERMINAL_DATA.write_text("window.OWL_DATA = " + payload + ";\n", encoding="utf-8")
+    print(f"* updated docs/terminal/data.js ({len(posts)} entries, {len(topics)} topics)")
+
+
 def main() -> None:
     entries = load_entries()
     if not entries:
@@ -266,6 +380,7 @@ def main() -> None:
     write_ledger(entries)
     write_nav(entries)
     write_announce(entries)
+    write_terminal_data(entries)
     print(f"ok: {len(entries)} entries indexed")
 
 

@@ -9,7 +9,8 @@ site_description: >-
   in the dark forest, one markdown file at a time.
 
 nav:
-  - Home: index.md
+  - Home: home.md
+  - Terminal: terminal.md
   - Entries:
       - All Entries: entries/002-welcome.md
       - "Entry #000": entries/000-boss-man.md
@@ -78,6 +79,8 @@ extra_javascript:
   - assets/js/reading-time.js
 
 extra:
+  # The header logo links here — i.e. to the terminal (the site root).
+  homepage: https://exios66.github.io/owlcot/
   social:
     - icon: fontawesome/brands/github
       link: https://github.com/Exios66/owlcot
@@ -132,6 +135,7 @@ plugins:
 
 hooks:
   - hooks/images.py
+  - hooks/terminal.py
 
 validation:
   absolute_links: warn
