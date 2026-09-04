@@ -106,11 +106,18 @@ CSS/JS, no theme chrome), so edit that file directly. Facts that matter:
 - The nav item "Terminal" is `docs/terminal.md`, a stub that redirects to
   the root (MkDocs nav entries must be markdown pages; the terminal is a
   static file).
-- The TTY supports: `help ls cat cd pwd whoami mail web open read search
+- The TTY supports: `help ls cat cd pwd whoami mail web blog open read search
   tree history neofetch motd date echo uname theme crt sound forest owl
   hoot` + easter eggs (`sudo`, `rm`, `vim`, …). `cd topics/<tag>` filters
-  entries by tag; `cat` renders markdown and prints an "open full page"
-  link to the Material page; `web` lists links back to the classic site.
+  entries by tag; `cat` renders markdown (with the entry title in the
+  header) and prints an "open full page" link to the Material page.
+- **Terminal ↔ blog cross-links** (both directions must keep working):
+  `blog ↗` lives in the status bar (essential, so it survives mobile) and
+  its href is computed per mount point (`home.html` at the stamped root,
+  `../home.html` under `/terminal/`); `web`/`blog` print absolute links;
+  the boot MOTD + tip line and the generated `README.md` intro all point at
+  the blog. The blog points back via the hero CTA, the `Terminal` nav stub
+  and `extra.homepage` (header logo).
   Dark-forest extras: `forest` renders an animated ASCII scene (fireflies,
   shooting stars, owl with blinking eyes); `forest on|off` toggles the
   ambient treeline layer; `owl`/`hoot` summon blinking ASCII owls. All
@@ -364,9 +371,11 @@ The `🦉 New entry: …` banner at the top is defined in `mkdocs.yml`
 ## 9. Cheat sheet
 
 ```sh
-python3 tools/update_index.py     # regenerate cards/nav/banner from entries
+python3 tools/update_index.py     # regenerate cards/nav/banner/terminal data from entries
 tools/validate.sh                 # full local check (indexes + strict build + artifacts)
 ./deploy.sh "Deploy — Entry #007" # validate, build, push to gh-pages, restore site/
 python3 tools/fix_feed_lengths.py # (auto-run) fix any RSS enclosure lengths
 mkdocs serve                      # local preview — root is the terminal; run update_index.py first so nav/home include new entries
+npm i --no-save puppeteer-core    # one-time, for the browser audit
+node tools/browser_test.mjs       # headless-Chrome audit of the BUILT site/ (65+ checks: commands, console errors, mobile, reduced-motion); needs Chrome, honors CHROME_PATH/TEST_PORT
 ```

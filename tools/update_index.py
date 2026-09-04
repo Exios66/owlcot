@@ -335,6 +335,8 @@ def write_terminal_data(entries: list[dict]) -> None:
         f"no infinite scroll — just a prompt, a cursor, and {len(posts)} breadcrumbs.\n\n"
         "type `help` for the manual. type `ls` to look around.\n"
         f"type `cat entries/{first['slug']}.md` to start at the very beginning.\n\n"
+        "the same words live as a classic blog: type `web` — or click `blog ↗`\n"
+        "in the status bar.\n\n"
         "> everything here is text. everything here will still work in twenty years."
     )
     contact = (

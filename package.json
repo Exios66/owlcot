@@ -1,0 +1,11 @@
+{
+  "name": "owlcot",
+  "private": true,
+  "description": "Browser audit harness for the built site (tools/browser_test.mjs). The site itself is MkDocs — see AGENTS.md.",
+  "scripts": {
+    "test:browser": "node tools/browser_test.mjs"
+  },
+  "dependencies": {
+    "puppeteer-core": "^25.10.0"
+  }
+}
