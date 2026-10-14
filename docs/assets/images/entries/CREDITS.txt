@@ -12,6 +12,8 @@ attribution is required; a few are CC BY / CC BY-SA, which request attribution
 — the provenance for every image is listed below.
 
 | Local file | Source file (Wikimedia Commons) | License |
+| Photo by | Source | Description |
+|---|---|---|
 |------------|----------------------------------|---------|
 | `000-boss-man.jpg` | [Night (2011645906).jpg](https://commons.wikimedia.org/wiki/File:Night_(2011645906).jpg) | Public domain |
 | `001-electric-mice.jpg` | [Mus musculus 57127864.jpg](https://commons.wikimedia.org/wiki/File:Mus_musculus_57127864.jpg) | CC0 |
@@ -42,3 +44,4 @@ To find a replacement image for a future entry, search Wikimedia Commons at
 <https://commons.wikimedia.org/> (or Unsplash/Pexels), grab the direct CDN URL
 (`upload.wikimedia.org/...` or `images.unsplash.com/...`), verify it returns
 HTTP 200, and save a local copy here as `NNN-<slug>.jpg`.
+| Morningstar | Unsplash | Morning fog lifting over a winding dirt path clearing the view |
