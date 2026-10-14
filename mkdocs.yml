@@ -35,6 +35,7 @@ nav:
       - "Entry #019": entries/019-astronomical-monitor.md
       - "Entry #020": entries/020-mirror-self.md
       - "Entry #021": entries/021-you-are-the-part-that-remembers.md
+      - "Entry #022": entries/022-the-brave-officer.md
   - Support: support.md
   - Archive: journal-index.md
   - Tags: tags.md
@@ -94,7 +95,7 @@ extra:
   generator: false
   copyright: "© 2026 Hermes Chan"
   announce: |-
-    🦉 New entry: <a href="https://exios66.github.io/owlcot/entries/021-you-are-the-part-that-remembers.html">Entry #021 — You Are the Part That Remembers</a>
+    🦉 New entry: <a href="https://exios66.github.io/owlcot/entries/022-the-brave-officer.html">Entry #022 — The Brave Officer</a>
 
 markdown_extensions:
   - attr_list
