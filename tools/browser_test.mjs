@@ -480,6 +480,101 @@ await sleep(1200);
   await p8.close();
 }
 
+// ---------- adaptive experience (task 4) ----------
+{
+  const run = async (pg, cmd, settle = 400) => {
+    await pg.focus('#cmdInput');
+    await pg.keyboard.type(cmd, { delay: 5 });
+    await pg.keyboard.press('Enter');
+    await sleep(settle);
+  };
+  const outText = pg => pg.$eval('#output', e => e.innerText);
+
+  // fresh profile, then reload
+  const pa = await newPage();
+  await pa.evaluateOnNewDocument(() => { try { if (!sessionStorage.getItem('__c')) { localStorage.clear(); sessionStorage.setItem('__c', '1'); } } catch (e) {} });
+  await pa.goto(BASE + '/', { waitUntil: 'load' });
+  await sleep(4500);
+  check('adaptive: first visit greeting', (await outText(pa)).includes('first time in the forest'));
+  check('adaptive: daypart line in MOTD', /the owls are awake|the forest is waking up|daylight\. the owls|dusk\. the fireflies/.test(await outText(pa)));
+  check('adaptive: __owl.daypart night', await pa.evaluate(() => typeof window.__owl.daypart === 'function' && window.__owl.daypart(new Date(2026, 0, 1, 23)) === 'night'));
+  check('adaptive: __owl.daypart dawn', await pa.evaluate(() => typeof window.__owl.daypart === 'function' && window.__owl.daypart(new Date(2026, 0, 1, 6)) === 'dawn'));
+  check('adaptive: __owl.daypart day', await pa.evaluate(() => typeof window.__owl.daypart === 'function' && window.__owl.daypart(new Date(2026, 0, 1, 12)) === 'day'));
+  check('adaptive: __owl.daypart dusk', await pa.evaluate(() => typeof window.__owl.daypart === 'function' && window.__owl.daypart(new Date(2026, 0, 1, 19)) === 'dusk'));
+  check('adaptive: __owl.visitor exposed', await pa.evaluate(() => !!window.__owl.visitor && window.__owl.visitor.visits === 1));
+  await run(pa, 'whatsnew');
+  check('adaptive: whatsnew first visit', (await outText(pa)).includes("everything is new. start with 'read 0'."));
+  await run(pa, 'ls entries');
+  const unreadBefore = await pa.evaluate(() => document.querySelectorAll('.file.unread').length);
+  check('adaptive: all entries unread at first', unreadBefore > 1, String(unreadBefore));
+  await run(pa, 'read 0', 600);
+  await run(pa, 'cd ~');
+  await run(pa, 'ls entries');
+  const unreadState = await pa.evaluate(() => {
+    const last = [...document.querySelectorAll('#output .listing')].pop();
+    const els = [...last.querySelectorAll('.file')];
+    const boss = els.find(e => e.textContent === '000-boss-man.md');
+    return { boss: !!boss, bossUnread: !!boss && boss.classList.contains('unread'), others: els.some(e => e !== boss && e.classList.contains('unread')) };
+  });
+  check('adaptive: read entry loses .unread', unreadState.boss && !unreadState.bossUnread, JSON.stringify(unreadState));
+  check('adaptive: other entries stay .unread', unreadState.others);
+  await run(pa, 'stats');
+  check('adaptive: stats read line', /you have read 1 of \d+ entries/.test(await outText(pa)));
+  await pa.goto(BASE + '/', { waitUntil: 'load' });
+  await sleep(2500);
+  check('adaptive: reload greets visit #2', (await outText(pa)).includes('visit #2'));
+  await run(pa, 'next', 600);
+  check('adaptive: next continues from read history', (await outText(pa)).includes('001-'));
+  await pa.close();
+
+  // seeded returning visitor
+  const ps = await newPage();
+  await ps.evaluateOnNewDocument(() => { try { localStorage.setItem('owlcotVisitor', JSON.stringify({ visits: 3, lastVisit: '2026-01-01T00:00:00Z', read: [] })); } catch (e) {} });
+  await ps.goto(BASE + '/', { waitUntil: 'load' });
+  await sleep(2500);
+  const st = await outText(ps);
+  check('adaptive: seeded greeting visit #4', st.includes('visit #4'));
+  check('adaptive: seeded greeting new entries', st.includes('new entries since your last visit'));
+  await run(ps, 'whatsnew');
+  const listed = await ps.evaluate(() => (document.querySelector('#output').innerText.match(/\d{3}-[a-z0-9-]+\.md/g) || []).length);
+  check('adaptive: whatsnew lists >= 1 entry', listed >= 1, String(listed));
+  await ps.close();
+
+  // mobile chips
+  const pm = await newPage(390, 844);
+  await pm.goto(BASE + '/', { waitUntil: 'load' });
+  await sleep(4500);
+  check('adaptive: mobile shows quick chips', await pm.evaluate(() => document.querySelectorAll('.quick-chips button').length === 6));
+  check('adaptive: chips tall enough', await pm.evaluate(() => [...document.querySelectorAll('.quick-chips button')].every(b => b.getBoundingClientRect().height >= 32)));
+  check('adaptive: mobile no horizontal overflow', await pm.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1));
+  const before = await pm.evaluate(() => document.querySelectorAll('.listing').length);
+  await pm.evaluate(() => [...document.querySelectorAll('.quick-chips button')].find(b => b.textContent === 'ls')?.click());
+  await sleep(400);
+  check('adaptive: ls chip produces listing', await pm.evaluate(() => document.querySelectorAll('.listing').length) > before);
+  await run(pm, 'ls entries');
+  check('adaptive: mobile listing no overflow', await pm.evaluate(() => { const o = document.querySelector('#output'); return document.documentElement.scrollWidth <= window.innerWidth + 1 && o.scrollWidth <= o.clientWidth + 1; }));
+  await pm.close();
+
+  // desktop has no chips
+  const pd = await newPage();
+  await pd.goto(BASE + '/', { waitUntil: 'load' });
+  await sleep(2500);
+  check('adaptive: desktop has no chips', await pd.evaluate(() => document.querySelectorAll('.quick-chips').length === 0));
+  await pd.close();
+
+  // storage blocked
+  const pb = await newPage();
+  const nerrB = errors.length;
+  await pb.evaluateOnNewDocument(() => { Object.defineProperty(window, 'localStorage', { get() { throw new Error('blocked'); } }); });
+  await pb.goto(BASE + '/', { waitUntil: 'load' });
+  await sleep(4500);
+  check('adaptive: storage blocked boots to MOTD', (await outText(pb)).includes('a journal that behaves like a terminal'));
+  await run(pb, 'read 0', 500);
+  await run(pb, 'whatsnew');
+  check('adaptive: storage blocked no pageerror', errors.length === nerrB, errors.slice(nerrB).join(' | '));
+  await pb.close();
+}
+
 // ---------- noData page: OWL_DATA missing ----------
 {
   const pn = await newPage();

@@ -520,6 +520,26 @@
   .file:hover {
     background: rgba(255, 184, 108, 0.06);
   }
+  .file.unread::before { content: '\2022 '; color: var(--amber); }
+  .quick-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 8px 0;
+    max-width: 100%;
+  }
+  .quick-chips button {
+    font-family: inherit;
+    font-size: 0.95em;
+    color: var(--amber);
+    background: #0a0d10;
+    border: 1px solid var(--amber);
+    border-radius: 4px;
+    min-height: 36px;
+    padding: 4px 12px;
+    cursor: pointer;
+  }
+  .quick-chips button:active { background: rgba(255, 184, 108, 0.15); }
   .file.dir {
     color: var(--cyan);
     font-weight: 500;
@@ -1368,6 +1388,8 @@ try {
   if (typeof prefs.forest === 'boolean') state.forest = prefs.forest;
   const stored = JSON.parse(localStorage.getItem('owlcotHistory') || '[]');
   if (Array.isArray(stored)) state.history = stored.slice(-100);
+  // high-contrast users start with the CRT overlay off unless they chose otherwise
+  if (typeof prefs.crt !== 'boolean' && window.matchMedia && window.matchMedia('(prefers-contrast: more)').matches) state.crt = false;
 } catch (e) {}
 
 function savePrefs() {
@@ -1376,6 +1398,41 @@ function savePrefs() {
       theme: state.theme, crt: state.crt, sound: state.sound, forest: state.forest,
     }));
   } catch (e) {}
+}
+
+// =================== VISITOR ===================
+const visitor = { visits: 0, lastVisit: null, read: [] };
+function loadVisitor() {
+  try {
+    const v = JSON.parse(localStorage.getItem('owlcotVisitor') || 'null');
+    if (v && typeof v === 'object') {
+      if (Number.isFinite(v.visits)) visitor.visits = v.visits;
+      if (typeof v.lastVisit === 'string') visitor.lastVisit = v.lastVisit;
+      if (Array.isArray(v.read)) visitor.read = v.read.filter(x => typeof x === 'string');
+    }
+  } catch (e) {}
+}
+function saveVisitor() {
+  try { localStorage.setItem('owlcotVisitor', JSON.stringify(visitor)); } catch (e) {}
+}
+function markRead(name) {
+  if (name && !visitor.read.includes(name)) { visitor.read.push(name); saveVisitor(); }
+}
+loadVisitor();
+// the previous visit, captured before boot overwrites lastVisit
+const PREV_VISIT = visitor.lastVisit;
+visitor.visits += 1;
+function daypart(d) {
+  const h = d.getHours();
+  if (h >= 21 || h < 5) return 'night';
+  if (h < 8) return 'dawn';
+  if (h < 18) return 'day';
+  return 'dusk';
+}
+function newSinceLastVisit() {
+  if (!PREV_VISIT || !POSTS) return [];
+  const since = PREV_VISIT.slice(0, 10);
+  return POST_NAMES.map(n => POSTS[n]).filter(p => p.date && p.date > since);
 }
 
 // =================== THEMES ===================
@@ -1827,7 +1884,8 @@ COMMANDS.ls = (args) => {
   if (!items) { print('ls: cannot access \'' + (args[0] || '') + '\': No such file or directory', 'error'); return; }
   if (items.length === 0) { printBlank(); return; }
   const html = items.map(item => {
-    const cls = 'file ' + (item.cls || (item.type === 'dir' ? 'dir' : ''));
+    let cls = 'file ' + (item.cls || (item.type === 'dir' ? 'dir' : ''));
+    if (item.type === 'file' && POSTS[item.name] && !visitor.read.includes(item.name)) cls += ' unread';
     return '<span class="' + cls + '">' + escapeHtml(item.name) + '</span>';
   }).join('');
   printRaw('<div class="listing">' + html + '</div>');
@@ -1854,6 +1912,7 @@ function levenshtein(a, b) {
 
 function catPost(p) {
   state.lastRead = p.name;
+  markRead(p.name);
   const tags = (p.tags || []).join(', ');
   const badge = (p.num != null) ? '#' + String(p.num).padStart(3, '0') + ' — ' : '';
   printRaw('<div class="file-header"><span class="dim">' + '─'.repeat(74) + '</span>\n  <span class="amber">' + escapeHtml(p.name) + '</span>'
@@ -2131,8 +2190,16 @@ COMMANDS.first = () => {
 };
 COMMANDS.next = () => {
   if (needData()) return;
-  if (state.lastRead === null || !POSTS[state.lastRead]) { COMMANDS.first(); return; }
-  const i = POST_NAMES.indexOf(state.lastRead);
+  let from = state.lastRead;
+  if (from === null || !POSTS[from]) {
+    // continue from the furthest entry read in earlier visits
+    const nums = visitor.read.filter(n => POSTS[n]).map(n => POSTS[n].num).filter(n => n != null);
+    if (!nums.length) { COMMANDS.first(); return; }
+    const top = postByNum(Math.max.apply(null, nums));
+    if (!top) { COMMANDS.first(); return; }
+    from = top.name;
+  }
+  const i = POST_NAMES.indexOf(from);
   if (i >= POST_NAMES.length - 1) { print('end of the trail — no newer entry', 'dim'); return; }
   catPost(POSTS[POST_NAMES[i + 1]]);
 };
@@ -2240,6 +2307,7 @@ COMMANDS.stats = () => {
     '<span class="amber">avg read time</span>  ' + avg.toFixed(1) + ' min',
     '<span class="amber">first entry</span>    ' + escapeHtml(dates[0] || '?'),
     '<span class="amber">latest entry</span>   ' + escapeHtml(dates[dates.length - 1] || '?'),
+    'you have read ' + visitor.read.filter(n => POSTS[n]).length + ' of ' + ps.length + ' entries',
     '',
     '<span class="amber">top tags</span>',
   ].concat(tc.map(t => '  ' + escapeHtml(t.tag).padEnd(14) + ' <span class="green">' + bar(t.n, tc[0].n, 20) + '</span> ' + t.n));
@@ -2295,6 +2363,16 @@ COMMANDS.fortune = () => {
     return;
   }
   print('the forest is quiet. no fortune today.', 'dim');
+};
+
+COMMANDS.whatsnew = () => {
+  if (needData()) return;
+  if (!PREV_VISIT) { print("everything is new. start with 'read 0'.", 'dim'); return; }
+  const fresh = newSinceLastVisit();
+  if (!fresh.length) { print('nothing new since your last visit (' + escapeHtml(PREV_VISIT.slice(0, 10)) + ')', 'dim'); return; }
+  print(fresh.length + ' new since ' + escapeHtml(PREV_VISIT.slice(0, 10)) + ':', 'dim');
+  const html = fresh.map(p => '<span class="file md' + (visitor.read.includes(p.name) ? '' : ' unread') + '">' + escapeHtml(p.name) + '</span>').join('');
+  printRaw('<div class="listing">' + html + '</div>');
 };
 
 // Every localStorage key the terminal owns. Later features append here.
@@ -2540,12 +2618,33 @@ setInterval(updateClock, 1000);
 updateClock();
 
 // =================== MOTD ===================
+const DAYPART_LINES = {
+  night: 'the owls are awake. so are you.',
+  dawn: 'the forest is waking up.',
+  day: 'daylight. the owls are sleeping — tread softly.',
+  dusk: 'dusk. the fireflies are clocking in.',
+};
+function wantsChips() {
+  try { return window.matchMedia('(pointer: coarse)').matches || window.innerWidth <= 640; } catch (e) { return false; }
+}
+function printQuickChips() {
+  const row = print('', 'quick-chips');
+  row.innerHTML = '';
+  ['help', 'ls', 'latest', 'random', 'forest', 'whatsnew'].forEach(c => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.textContent = c;
+    b.addEventListener('click', () => { submitCommand(c); cmdInput.focus(); });
+    row.appendChild(b);
+  });
+}
 function printMotd() {
   const hint = '<div class="motd">'
     + '<p><span class="amber" style="font-weight:600">owlcot</span> <span class="dim">—</span> a journal that behaves like a terminal.</p>'
     + '<p>type <span class="success">help</span> for the manual · <span class="success">ls</span> to look around · <span class="success">cat README.md</span> to begin</p>'
     + '<p>type <span class="success">forest</span> to enter the dark forest · <span class="success">owl</span> to summon the resident · <span class="success">neofetch</span> for fun</p>'
     + '<p>the same words live as a classic blog — type <span class="success">web</span> or <span class="success">blog</span>, or click <a class="blog-link" href="' + BLOG_HREF + '">blog&nbsp;↗</a> above</p>'
+    + '<p class="dim">' + escapeHtml(DAYPART_LINES[daypart(new Date())]) + '</p>'
     + '</div>';
   printRaw(hint);
 }
@@ -2586,6 +2685,7 @@ async function boot() {
   await sleep(reduced() ? 0 : 500);
 
   // Boot progress bar
+  const fast = visitor.visits > 1;
   const progressEl = print('', 'boot-line');
   const totalSteps = 8;
   const barWidth = 30;
@@ -2595,9 +2695,9 @@ async function boot() {
     const pct = Math.round((i / totalSteps) * 100);
     const bar = '<span class="dim">[</span><span class="amber">' + '█'.repeat(filled) + '</span><span class="dim">' + '░'.repeat(empty) + ']</span> <span class="dim">' + pct + '%</span>';
     progressEl.innerHTML = bar;
-    if (i < totalSteps) await sleep(reduced() ? 0 : 40);
+    if (i < totalSteps) await sleep(reduced() || fast ? 0 : 40);
   }
-  await sleep(reduced() ? 0 : 150);
+  await sleep(reduced() || fast ? 0 : 150);
 
   const bootLines = [
     { t: '[ <span class="ok">OK</span> ] ' + escapeHtml(engineString()) + ' — dark forest edition', d: 55 },
@@ -2613,22 +2713,33 @@ async function boot() {
 
   for (const line of bootLines) {
     print(line.t, 'boot-line');
-    await sleep(reduced() ? 0 : line.d);
+    await sleep(reduced() || fast ? 0 : line.d);
   }
 
   printMotd();
   printBlank();
   if (maybeAnnounceRelease()) printBlank();
+  if (wantsChips()) printQuickChips();
 
   const hello = print('<span class="dim"></span>', 'lore-line');
-  await typeOutText('you are here because you typed something, once. welcome back.', hello, 14, false);
+  let greeting;
+  if (visitor.visits <= 1 || !PREV_VISIT) {
+    greeting = "first time in the forest? type 'read 0' to start at the beginning, or 'latest' for the newest.";
+  } else {
+    greeting = 'welcome back. visit #' + visitor.visits + '.';
+    const k = newSinceLastVisit().length;
+    if (k) greeting += ' ' + k + " new entries since your last visit — type 'whatsnew'.";
+  }
+  await typeOutText(greeting, hello, fast ? 6 : 14, false);
   const tip = print('<span class="dim"></span>', 'lore-line');
   await typeOutText('prefer the classic blog? type \'web\' — or click blog ↗ in the status bar.', tip, 12, false);
 
+  visitor.lastVisit = new Date().toISOString();
+  saveVisitor();
   cmdInput.focus();
 }
 
-window.__owl = { ENGINE };
+window.__owl = { ENGINE, visitor, daypart };
 
 boot();
 </script>
