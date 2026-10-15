@@ -106,11 +106,24 @@ CSS/JS, no theme chrome), so edit that file directly. Facts that matter:
 - The nav item "Terminal" is `docs/terminal.md`, a stub that redirects to
   the root (MkDocs nav entries must be markdown pages; the terminal is a
   static file).
-- The TTY supports: `help ls cat cd pwd whoami mail web blog open read search
-  tree history neofetch motd date echo uname theme crt sound forest owl
-  hoot` + easter eggs (`sudo`, `rm`, `vim`, …). `cd topics/<tag>` filters
-  entries by tag; `cat` renders markdown (with the entry title in the
-  header) and prints an "open full page" link to the Material page.
+- The TTY (hermes-engine 2.0.0) supports: `help man ls cat cd pwd read open
+  search grep random shuffle latest first next prev head wc stats whatsnew
+  tags topics calendar cal fortune whoami mail web blog tree history neofetch
+  owl hoot forest motd clear date echo uname version ver changelog releases
+  hermes reset theme crt sound`, plus hidden easter eggs (counted, never
+  listed, by the `eggs` command — don't enumerate them in docs).
+  `cd topics/<tag>` filters entries by tag; `cat` renders markdown (with the
+  entry title in the header) and prints an "open full page" link to the
+  Material page. The authoritative list is `HELP_TEXT` in `index.html`.
+- **Adaptive behaviour** (all `localStorage`, every access in try/catch, page
+  works with storage throwing): `owlcotPrefs` (theme/crt/sound/forest),
+  `owlcotHistory` (command history), `owlcotVisitor` (visit count / last
+  visit / read entries → daypart MOTD line, fast boot for returning visitors,
+  unread markers in `ls`, `whatsnew`), `owlcotEngine` (last engine version
+  whose release card was shown), `owlcotEggs` (discovered easter eggs).
+  `reset` clears all five (`RESET_KEYS`). Touch devices get quick-chips;
+  `prefers-contrast` turns the CRT off; `prefers-reduced-motion` disables all
+  animation timers.
 - **Terminal ↔ blog cross-links** (both directions must keep working):
   `blog ↗` lives in the status bar (essential, so it survives mobile) and
   its href is computed per mount point (`home.html` at the stamped root,
@@ -126,6 +139,24 @@ CSS/JS, no theme chrome), so edit that file directly. Facts that matter:
   bg `#050709`, amber `#ffb86c` accents, cyan `#67e8f9` links, phosphor
   `#a3e635` inline code, mono headings, and a blinking block cursor in the
   header title.
+
+---
+
+## Hermes Engine versioning
+
+The terminal carries its own semver, separate from the journal entries.
+
+- `ENGINE` (`{name, version, codename, date}`) and `CHANGELOG` (newest first)
+  are constants at the top of the script in `docs/terminal/index.html`.
+  Current: **2.0.0 "nocturne"**; previous: 1.0.0 "darkforest".
+- Semver: new commands/features = **minor**; fixes = **patch**; breaking
+  changes to prefs/storage keys (anything that invalidates existing
+  `localStorage`) = **major**.
+- The release card (`forest release` replays it) shows once per version per
+  visitor, tracked by `owlcotEngine`; a new `ENGINE.version` re-triggers it.
+- To release: bump `ENGINE` (version, codename, date); prepend a `CHANGELOG`
+  entry; update `HELP_TEXT` if commands changed; extend the version checks in
+  `tools/browser_test.mjs`; run `tools/validate.sh` and the browser audit.
 
 ---
 
@@ -377,5 +408,5 @@ tools/validate.sh                 # full local check (indexes + strict build + a
 python3 tools/fix_feed_lengths.py # (auto-run) fix any RSS enclosure lengths
 mkdocs serve                      # local preview — root is the terminal; run update_index.py first so nav/home include new entries
 npm i --no-save puppeteer-core    # one-time, for the browser audit
-node tools/browser_test.mjs       # headless-Chrome audit of the BUILT site/ (65+ checks: commands, console errors, mobile, reduced-motion); needs Chrome, honors CHROME_PATH/TEST_PORT
+node tools/browser_test.mjs       # headless-Chrome audit of the BUILT site/ (~200 checks: commands, console errors, mobile, reduced-motion, adaptive state, eggs); needs Chrome via CHROME_PATH (e.g. /opt/pw-browsers/chromium-1194/chrome-linux/chrome on Linux), honors TEST_PORT; failures reaching external hosts are soft warnings
 ```
