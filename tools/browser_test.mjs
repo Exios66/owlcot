@@ -26,6 +26,12 @@ const results = [];
 const check = (name, ok, extra = '') => results.push(`${ok ? 'PASS' : 'FAIL'}  ${name}${extra ? '  [' + extra + ']' : ''}`);
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
+/**
+ * Create a browser page with a viewport and handlers that collect errors and warnings.
+ * @param {number} [w=1280] Viewport width in pixels.
+ * @param {number} [h=900] Viewport height in pixels.
+ * @returns {Promise<import('puppeteer-core').Page>} The configured browser page.
+ */
 async function newPage(w = 1280, h = 900) {
   const page = await browser.newPage();
   await page.setViewport({ width: w, height: h });
