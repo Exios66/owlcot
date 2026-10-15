@@ -38,6 +38,7 @@ attribution is required; a few are CC BY / CC BY-SA, which request attribution
 | `020-mirror-self.jpg` | Unsplash photo-1516589178581-6cd7833ae3b2 — recovered from live site 2026-10-14; original source deployed Sep 2026 | Unsplash License |
 | `021-you-are-the-part-that-remembers.jpg` | [Old Library, History Reading Room, 1964 (3926511550).jpg](https://commons.wikimedia.org/wiki/File:Old_Library,_History_Reading_Room,_1964_(3926511550).jpg) | No restrictions (public domain) |
 | `022-the-brave-officer.jpg` | [Industries of War - Rope - Manufacture of hemp rope; Columbian Rope Company, Auburn, New York. Machine used for medium sized 4-strand rope - NARA - 45489215.jpg](https://commons.wikimedia.org/wiki/File:Industries_of_War_-_Rope_-_Manufacture_of_hemp_rope;_Columbian_Rope_Company,_Auburn,_New_York._Machine_used_for_medium_sized_4-strand_rope_-_NARA_-_45489215.jpg) | Public domain (US National Archives, 1918) |
+| `023-forgetting-as-mercy.jpg` | Original generated artwork (procedural, Pillow) — dark forest night with a lantern clearing | Public domain / CC0 |
 | `default.jpg` | same as `004-why-the-owl.jpg` | Public domain |
 
 To find a replacement image for a future entry, search Wikimedia Commons at

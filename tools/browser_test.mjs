@@ -32,7 +32,8 @@ async function newPage(w = 1280, h = 900) {
   page.on('pageerror', e => errors.push(`[pageerror] ${e.message}`));
   page.on('console', m => {
     const t = m.type();
-    if (t === 'error') errors.push(`[console.error] ${m.text()}`);
+    // External-host load failures are already reported by the requestfailed soft-warning handler.
+    if (t === 'error') { if (!m.text().startsWith('Failed to load resource')) errors.push(`[console.error] ${m.text()}`); }
     else if (t === 'warning') warns.push(`[console.warn] ${m.text()}`);
   });
   page.on('response', r => {
@@ -174,7 +175,17 @@ check('search miss message', await outHas('keeps its secrets'));
 await run('read 3', 600);
 check('read 3 opens entry #003', await outHas('entries/003-ship-of-theseus.md'));
 await run('open latest', 600);
-check('open latest opens newest URL', await page.evaluate(() => window.__opened.some(u => u.includes('018-the-present-tense'))));
+const latestSlug = await page.$eval('body', () => {
+  const posts = window.OWL_DATA.posts;
+  return posts.reduce((a, b) => (b.num > a.num ? b : a)).slug;
+});
+check('open latest opens newest URL', await page.$eval('body', (_b, s) => window.__opened.some(u => u.includes(s)), latestSlug), latestSlug);
+
+// not-found echo must be escaped (no spaces: submitCommand splits on whitespace)
+const xssCmd = '<img/src=x/onerror=window.__xss=1>';
+await run(xssCmd, 600);
+const xssSafe = await page.$eval('body', () => window.__xss === undefined && !document.querySelector('#output img'));
+check('not-found echo is escaped', xssSafe && await outHas(xssCmd + ': command not found'));
 
 // visual scene commands
 await run('forest', 900);
@@ -285,7 +296,8 @@ await p4.goto(BASE + '/entries/018-the-present-tense.html', { waitUntil: 'load' 
 await sleep(600);
 {
   const og = await p4.evaluate(() => document.querySelector('meta[property="og:image"]')?.content || '');
-  check('entry: og:image remote URL', og.includes('upload.wikimedia.org'), og.slice(0, 60));
+  const ogOk = /^https:\/\/(upload\.wikimedia\.org|images\.unsplash\.com)\//.test(og) || og.startsWith('https://exios66.github.io/owlcot/assets/images/entries/');
+  check('entry: og:image remote or self-hosted URL', ogOk, og.slice(0, 60));
   const badge = await p4.evaluate(() => document.body.innerText.includes('ENTRY #018'));
   check('entry: badge + reading time', badge && await p4.evaluate(() => !!document.querySelector('.reading-time')));
 }

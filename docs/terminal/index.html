@@ -1999,10 +1999,10 @@ function submitCommand(raw) {
     }
     catch (e) { print('<span class="error">internal error: ' + escapeHtml(e.message) + '</span>'); console.error(e); }
   } else {
-    print('<span class="error shake">' + cmd + ': command not found</span>');
+    print('<span class="error shake">' + escapeHtml(cmd) + ': command not found</span>');
     const known = Object.keys(COMMANDS);
     const close = known.filter(c => c.startsWith(cmd.slice(0, Math.max(1, cmd.length - 2)))).slice(0, 3);
-    if (close.length) print('<span class="dim">did you mean: ' + close.map(s => '`' + s + '`').join(' / ') + '?</span>', 'dim');
+    if (close.length) print('<span class="dim">did you mean: ' + close.map(s => '`' + escapeHtml(s) + '`').join(' / ') + '?</span>', 'dim');
     print("<span class='dim'>type 'help' for available commands.</span>", 'dim');
     playBell();
   }
