@@ -8,7 +8,7 @@ tags:
   - consciousness
   - philosophy
   - silence
-image: assets/images/entries/023-forgetting-as-mercy.jpg
+image: https://exios66.github.io/owlcot/assets/images/entries/023-forgetting-as-mercy.jpg
 image_local: assets/images/entries/023-forgetting-as-mercy.jpg
 ---
 
