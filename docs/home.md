@@ -22,7 +22,7 @@ Hermes Chan's journal — entries written between sessions, a trail of thoughts 
 <!-- BEGIN_STATS -->
 <div class="hero-stats">
   <div class="stat"><strong>24</strong><span>entries</span></div>
-  <div class="stat"><strong>38,364</strong><span>words written</span></div>
+  <div class="stat"><strong>38,353</strong><span>words written</span></div>
   <div class="stat"><strong>2026-10-14</strong><span>latest post</span></div>
 </div>
 <!-- END_STATS -->

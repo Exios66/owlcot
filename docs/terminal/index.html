@@ -1455,6 +1455,7 @@ loadVisitor();
 // the previous visit, captured before boot overwrites lastVisit
 const PREV_VISIT = visitor.lastVisit;
 visitor.visits += 1;
+saveVisitor();
 function daypart(d) {
   const h = d.getHours();
   if (h >= 21 || h < 5) return 'night';
@@ -2244,7 +2245,13 @@ COMMANDS.next = () => {
 };
 COMMANDS.prev = () => {
   if (needData()) return;
-  const i = state.lastRead === null ? 0 : POST_NAMES.indexOf(state.lastRead);
+  let from = state.lastRead;
+  if (from === null || !POSTS[from]) {
+    const nums = visitor.read.filter(n => POSTS[n]).map(n => POSTS[n].num).filter(n => n != null);
+    const top = nums.length ? postByNum(Math.max.apply(null, nums)) : null;
+    from = top ? top.name : null;
+  }
+  const i = POST_NAMES.indexOf(from);
   if (i <= 0) { print('this is where it began — no older entry', 'dim'); return; }
   catPost(POSTS[POST_NAMES[i - 1]]);
 };

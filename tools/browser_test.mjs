@@ -499,8 +499,27 @@ await sleep(1200);
   // fresh profile, then reload
   const pa = await newPage();
   await pa.evaluateOnNewDocument(() => { try { if (!sessionStorage.getItem('__c')) { localStorage.clear(); sessionStorage.setItem('__c', '1'); } } catch (e) {} });
+  await pa.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'no-preference' }]);
+  await pa.evaluateOnNewDocument(() => {
+    window.__bootWaits = [];
+    const setTimeout = window.setTimeout.bind(window);
+    window.setTimeout = (callback, delay, ...args) => {
+      const lines = document.querySelectorAll('#output .boot-line').length;
+      if (lines && !document.querySelector('.motd')) {
+        window.__bootWaits.push({
+          delay, lines, visits: window.__owl.visitor.visits,
+          storedVisits: JSON.parse(localStorage.getItem('owlcotVisitor') || '{}').visits,
+        });
+      }
+      return setTimeout(callback, delay, ...args);
+    };
+  });
   await pa.goto(BASE + '/', { waitUntil: 'load' });
   await sleep(4500);
+  const firstWaits = await pa.evaluate(() => window.__bootWaits);
+  check('adaptive: visit #1 stored before boot path selection', firstWaits.length > 0 && firstWaits.every(w => w.visits === 1 && w.storedVisits === 1));
+  check('adaptive: first visit uses full progress delays', firstWaits.filter(w => w.lines === 1).length === 9 && firstWaits.filter(w => w.lines === 1).every(w => w.delay > 0));
+  check('adaptive: first visit uses all bootLines delays', firstWaits.filter(w => w.lines > 1).length === 9 && firstWaits.filter(w => w.lines > 1).every(w => w.delay > 0));
   check('adaptive: first visit greeting', (await outText(pa)).includes('first time in the forest'));
   check('adaptive: daypart line in MOTD', /the owls are awake|the forest is waking up|daylight\. the owls|dusk\. the fireflies/.test(await outText(pa)));
   check('adaptive: __owl.daypart night', await pa.evaluate(() => typeof window.__owl.daypart === 'function' && window.__owl.daypart(new Date(2026, 0, 1, 23)) === 'night'));
@@ -508,6 +527,8 @@ await sleep(1200);
   check('adaptive: __owl.daypart day', await pa.evaluate(() => typeof window.__owl.daypart === 'function' && window.__owl.daypart(new Date(2026, 0, 1, 12)) === 'day'));
   check('adaptive: __owl.daypart dusk', await pa.evaluate(() => typeof window.__owl.daypart === 'function' && window.__owl.daypart(new Date(2026, 0, 1, 19)) === 'dusk'));
   check('adaptive: __owl.visitor exposed', await pa.evaluate(() => !!window.__owl.visitor && window.__owl.visitor.visits === 1));
+  await run(pa, 'prev');
+  check('adaptive: prev without read history keeps boundary message', (await outText(pa)).includes('this is where it began — no older entry'));
   await run(pa, 'whatsnew');
   check('adaptive: whatsnew first visit', (await outText(pa)).includes("everything is new. start with 'read 0'."));
   await run(pa, 'ls entries');
@@ -528,14 +549,21 @@ await sleep(1200);
   check('adaptive: stats read line', /you have read 1 of \d+ entries/.test(await outText(pa)));
   await pa.goto(BASE + '/', { waitUntil: 'load' });
   await sleep(2500);
+  const secondWaits = await pa.evaluate(() => window.__bootWaits);
+  check('adaptive: visit #2 stored before boot path selection', secondWaits.length > 0 && secondWaits.every(w => w.visits === 2 && w.storedVisits === 2));
+  check('adaptive: second visit skips progress delays', secondWaits.filter(w => w.lines === 1).length === 9 && secondWaits.filter(w => w.lines === 1).every(w => w.delay === 0));
+  check('adaptive: second visit prints all bootLines without delays', secondWaits.filter(w => w.lines > 1).length === 9 && secondWaits.filter(w => w.lines > 1).every(w => w.delay === 0));
   check('adaptive: reload greets visit #2', (await outText(pa)).includes('visit #2'));
+  await run(pa, 'clear');
+  await run(pa, 'prev');
+  check('adaptive: prev with only oldest entry read keeps boundary message', (await outText(pa)).includes('this is where it began — no older entry'));
   await run(pa, 'next', 600);
   check('adaptive: next continues from read history', (await outText(pa)).includes('001-'));
   await pa.close();
 
   // seeded returning visitor
   const ps = await newPage();
-  await ps.evaluateOnNewDocument(() => { try { localStorage.setItem('owlcotVisitor', JSON.stringify({ visits: 3, lastVisit: '2026-01-01T00:00:00Z', read: [] })); } catch (e) {} });
+  await ps.evaluateOnNewDocument(() => { try { localStorage.setItem('owlcotVisitor', JSON.stringify({ visits: 3, lastVisit: '2026-01-01T00:00:00Z', read: ['003-ship-of-theseus.md', '999-missing.md', '001-electric-mice.md'] })); } catch (e) {} });
   await ps.goto(BASE + '/', { waitUntil: 'load' });
   await sleep(2500);
   const st = await outText(ps);
@@ -544,6 +572,10 @@ await sleep(1200);
   await run(ps, 'whatsnew');
   const listed = await ps.evaluate(() => (document.querySelector('#output').innerText.match(/\d{3}-[a-z0-9-]+\.md/g) || []).length);
   check('adaptive: whatsnew lists >= 1 entry', listed >= 1, String(listed));
+  await run(ps, 'prev');
+  check('adaptive: prev resumes from furthest valid read entry', (await ps.$$eval('#output .file-header', els => els.at(-1)?.textContent || '')).includes('#002 —'));
+  await run(ps, 'prev');
+  check('adaptive: prev prefers current session over read history', (await ps.$$eval('#output .file-header', els => els.at(-1)?.textContent || '')).includes('#001 —'));
   await ps.close();
 
   // mobile chips
