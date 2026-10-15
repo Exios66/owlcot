@@ -937,6 +937,7 @@ const CHANGELOG = [
     'the terminal landing page, forest/owl/hoot, themes, crt, sound',
   ] },
 ];
+/** Return the engine name, version, and parenthesized codename for display. */
 function engineString() { return ENGINE.name + ' ' + ENGINE.version + ' (' + ENGINE.codename + ')'; }
 
 // =================== HELP / MAN ===================
@@ -1402,6 +1403,7 @@ function savePrefs() {
 
 // =================== VISITOR ===================
 const visitor = { visits: 0, lastVisit: null, read: [] };
+/** Restore valid visitor fields, ignoring storage access and JSON parsing failures. */
 function loadVisitor() {
   try {
     const v = JSON.parse(localStorage.getItem('owlcotVisitor') || 'null');
@@ -1412,9 +1414,11 @@ function loadVisitor() {
     }
   } catch (e) {}
 }
+/** Save visitor state when storage is available; ignore storage failures. */
 function saveVisitor() {
   try { localStorage.setItem('owlcotVisitor', JSON.stringify(visitor)); } catch (e) {}
 }
+/** Record a nonempty, previously unread filename and attempt to save visitor state. */
 function markRead(name) {
   if (name && !visitor.read.includes(name)) { visitor.read.push(name); saveVisitor(); }
 }
@@ -1422,6 +1426,10 @@ loadVisitor();
 // the previous visit, captured before boot overwrites lastVisit
 const PREV_VISIT = visitor.lastVisit;
 visitor.visits += 1;
+/**
+ * Return the local time period: night [21:00, 05:00), dawn [05:00, 08:00),
+ * day [08:00, 18:00), or dusk [18:00, 21:00).
+ */
 function daypart(d) {
   const h = d.getHours();
   if (h >= 21 || h < 5) return 'night';
@@ -1429,6 +1437,10 @@ function daypart(d) {
   if (h < 18) return 'day';
   return 'dusk';
 }
+/**
+ * Return posts dated strictly after the previous visit's ISO date, in mounted
+ * order. Same-day posts are excluded; no previous visit yields an empty array.
+ */
 function newSinceLastVisit() {
   if (!PREV_VISIT || !POSTS) return [];
   const since = PREV_VISIT.slice(0, 10);
@@ -1684,6 +1696,7 @@ function fileCandidates(cmd) {
     ? ['entries', 'topics'].concat(TOPICS).concat(fromRoot.filter(c => c.endsWith('/')).map(c => c.replace(/\/$/, '')))
     : HOME_FILES.concat(fromRoot);
 }
+/** Return completion choices for the command position or arguments, without prefix filtering. */
 function getCandidates(word, isFirst, cmd) {
   let candidates = [];
   if (isFirst) candidates = Object.keys(COMMANDS).sort();
@@ -1877,6 +1890,7 @@ COMMANDS.man = (args) => {
   else print('man: No manual entry for ' + cmd, 'error shake');
 };
 
+/** List the given directory or the current one, marking unread entries; print an error if missing. */
 COMMANDS.ls = (args) => {
   let target = state.cwd;
   if (args[0]) target = resolvePath(args[0]);
@@ -1891,11 +1905,13 @@ COMMANDS.ls = (args) => {
   printRaw('<div class="listing">' + html + '</div>');
 };
 
+/** Return the post matching Number(n), or null for a noninteger or an absent entry. */
 function postByNum(n) {
   const num = Number(n);
   if (!Number.isInteger(num)) return null;
   return POST_NAMES.map(x => POSTS[x]).find(p => p.num === num) || null;
 }
+/** Return the case-sensitive edit distance, counting UTF-16 code units. */
 function levenshtein(a, b) {
   if (a === b) return 0;
   let prev = [];
@@ -1910,6 +1926,7 @@ function levenshtein(a, b) {
   return prev[b.length];
 }
 
+/** Render a post and its optional web link, set the navigation position, and record it as read. */
 function catPost(p) {
   state.lastRead = p.name;
   markRead(p.name);
@@ -1990,11 +2007,13 @@ COMMANDS.tree = () => {
   printRaw('<pre class="tree">' + escapeHtml(lines.join('\n')) + '</pre>');
 };
 
+/** Return a release heading and notes as escaped HTML with newline separators. */
 function renderReleaseNotes(r) {
   const head = '<span class="amber">' + escapeHtml(ENGINE.name + ' ' + r.version) + '</span> <span class="cyan">"' + escapeHtml(r.codename) + '"</span> <span class="dim">— ' + escapeHtml(r.date) + '</span>';
   return head + '\n' + r.notes.map(n => '  <span class="dim">-</span> ' + escapeHtml(n)).join('\n');
 }
 
+/** Print the current engine card with the first three release notes, respecting reduced motion. */
 function printReleaseCard() {
   const art = ['   _/\\/\\_', '  /      \\', ' |  (o,o)  |', ' |  /)_)   |', '  \\______/'];
   const cur = CHANGELOG[0];
@@ -2007,6 +2026,10 @@ function printReleaseCard() {
     + '</div>');
 }
 
+/**
+ * Print the release card unless storage records this version; return whether
+ * it was printed. Attempt to save the version, ignoring storage failures.
+ */
 function maybeAnnounceRelease() {
   let seen = null;
   try { seen = localStorage.getItem('owlcotEngine'); } catch (e) {}
@@ -2016,11 +2039,16 @@ function maybeAnnounceRelease() {
   return true;
 }
 
+/** Print the engine identity and release date. */
 COMMANDS.version = () => {
   print('<span class="amber">' + escapeHtml(engineString()) + '</span> <span class="dim">— hatched ' + escapeHtml(ENGINE.date) + '</span>');
 };
 COMMANDS.ver = COMMANDS.version;
 
+/**
+ * Print all releases or the version in args[0], allowing a leading v or V.
+ * Print an error and known versions when the requested release is absent.
+ */
 COMMANDS.changelog = (args) => {
   let list = CHANGELOG;
   if (args[0]) {
@@ -2036,6 +2064,7 @@ COMMANDS.changelog = (args) => {
 };
 COMMANDS.releases = COMMANDS.changelog;
 
+/** Print engine status, the version for --version/-v, or the manual for --help/-h. */
 COMMANDS.hermes = (args) => {
   if (args[0] === '--version' || args[0] === '-v') { print(escapeHtml(engineString())); return; }
   if (args[0] === '--help' || args[0] === '-h') {
@@ -2045,6 +2074,7 @@ COMMANDS.hermes = (args) => {
   print('<span class="amber">' + escapeHtml(engineString()) + '</span> <span class="dim">· ' + POST_NAMES.length + ' entries · ' + TOPICS.length + ' topics · up ' + escapeHtml(formatUptime(Date.now() - state.bootTime)) + '</span>');
 };
 
+/** Print the owl beside engine, mounted entry, uptime, and preference information. */
 COMMANDS.neofetch = () => {
   const uptime = formatUptime(Date.now() - state.bootTime);
   const info = [
@@ -2097,6 +2127,10 @@ COMMANDS.hoot = async () => {
   await typeOutText(pick(HOOT_LINES), lore, 16, false);
 };
 
+/**
+ * Show the release card for 'release', set the ambient forest for 'on'/'off'
+ * and attempt to save preferences, or render a scene and resolve after its lore.
+ */
 COMMANDS.forest = async (args) => {
   if (args[0] === 'release') { printReleaseCard(); scrollBottom(); return; }
   if (args[0] === 'on' || args[0] === 'off') {
@@ -2173,21 +2207,30 @@ COMMANDS.read = (args) => {
 };
 
 // ---- navigation: random / latest / first / next / prev ----
+/** Print a missing-data message and return true when no entries are mounted; otherwise return false. */
 function needData() {
   if (POST_NAMES.length) return false;
   print('no entries mounted — data.js missing. run tools/update_index.py', 'error');
   return true;
 }
+/** Read a random mounted entry, or print the missing-data message. */
 COMMANDS.random = () => {
   if (needData()) return;
   catPost(POSTS[POST_NAMES[Math.floor(Math.random() * POST_NAMES.length)]]);
 };
 COMMANDS.shuffle = COMMANDS.random;
+/** Read the last mounted entry, or print the missing-data message. */
 COMMANDS.latest = () => COMMANDS.read([]);
+/** Read entry zero, falling back to the first mounted entry; report missing data. */
 COMMANDS.first = () => {
   if (needData()) return;
   catPost(postByNum(0) || POSTS[POST_NAMES[0]]);
 };
+/**
+ * Read the next mounted entry after the session's last read. Without one,
+ * continue after the highest saved entry number, or start at the first entry.
+ * Print a message for missing data or the end of the trail.
+ */
 COMMANDS.next = () => {
   if (needData()) return;
   let from = state.lastRead;
@@ -2203,6 +2246,7 @@ COMMANDS.next = () => {
   if (i >= POST_NAMES.length - 1) { print('end of the trail — no newer entry', 'dim'); return; }
   catPost(POSTS[POST_NAMES[i + 1]]);
 };
+/** Read the previous mounted entry; report missing data or no earlier entry, including before any read. */
 COMMANDS.prev = () => {
   if (needData()) return;
   const i = state.lastRead === null ? 0 : POST_NAMES.indexOf(state.lastRead);
@@ -2211,7 +2255,12 @@ COMMANDS.prev = () => {
 };
 
 // ---- text tools: grep / head / wc ----
+/** Escape regex metacharacters so the text can be matched literally. */
 function escapeRegExp(t) { return t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+/**
+ * Return escaped HTML with nonempty matches wrapped in mark elements.
+ * The regex must be global; its lastIndex is reset before matching and mutated.
+ */
 function markLine(line, re) {
   let out = '', last = 0, m;
   re.lastIndex = 0;
@@ -2222,6 +2271,11 @@ function markLine(line, re) {
   }
   return out + escapeHtml(line.slice(last));
 }
+/**
+ * Search bodies for the literal, case-insensitive term formed by joining args
+ * with spaces. Print up to three matching lines per entry and ten entries,
+ * with a total occurrence count across all entries; report empty terms or data.
+ */
 COMMANDS.grep = (args) => {
   const term = args.join(' ');
   if (!term) { print('usage: grep <term>', 'error'); print('example: grep forest', 'dim'); return; }
@@ -2254,6 +2308,11 @@ COMMANDS.grep = (args) => {
   print('<span class="dim">' + total + ' matches in ' + entries + ' entries</span>');
 };
 
+/**
+ * Print escaped raw content for args[0], limited to ten lines by default.
+ * Parse args[1] as a base-10 line count (zero is allowed); print errors for
+ * missing files or counts that do not parse to a nonnegative number.
+ */
 COMMANDS.head = (args) => {
   if (!args[0]) { print('usage: head <file> [n]', 'error'); return; }
   const file = resolveFile(args[0]);
@@ -2264,12 +2323,18 @@ COMMANDS.head = (args) => {
   printRaw('<div style="white-space:pre-wrap">' + lines.map(escapeHtml).join('\n') + '</div>');
 };
 
+/**
+ * Return l (newline-separated segments, including empty ones), w (nonempty
+ * whitespace-separated words), and c (UTF-16 code units). Empty text has one line.
+ */
 function wcCounts(text) {
   return { l: text.split('\n').length, w: text.split(/\s+/).filter(Boolean).length, c: text.length };
 }
+/** Format l/w/c counts in columns at least seven characters wide, followed by an HTML-escaped name. */
 function wcRow(c, name) {
   return [c.l, c.w, c.c].map(x => String(x).padStart(7)).join('') + ' ' + escapeHtml(name);
 }
+/** Print line/word/code-unit counts for args[0] or all entry bodies; report missing files or data. */
 COMMANDS.wc = (args) => {
   if (args[0]) {
     const file = resolveFile(args[0]);
@@ -2287,13 +2352,16 @@ COMMANDS.wc = (args) => {
 };
 
 // ---- the journal in numbers: stats / tags / calendar / fortune ----
+/** Return {tag, n} occurrence counts, sorted by descending count then locale-aware tag order. */
 function tagCounts() {
   const counts = {};
   POST_NAMES.forEach(n => POSTS[n].tags.forEach(t => { counts[t] = (counts[t] || 0) + 1; }));
   return Object.keys(counts).map(t => ({ tag: t, n: counts[t] }))
     .sort((a, b) => b.n - a.n || a.tag.localeCompare(b.tag));
 }
+/** Return a block bar scaled to n/max of the requested width, rounded to at least one block. */
 function bar(n, max, width) { return '█'.repeat(Math.max(1, Math.round(n / max * width))); }
+/** Print corpus totals, average reading minutes, date range, read count, and top five tags; report missing data. */
 COMMANDS.stats = () => {
   if (needData()) return;
   const ps = POST_NAMES.map(n => POSTS[n]);
@@ -2314,6 +2382,7 @@ COMMANDS.stats = () => {
   printRaw('<pre class="neofetch">' + lines.join('\n') + '</pre>');
 };
 
+/** Print tags in descending frequency order with a navigation hint; report missing data or topics. */
 COMMANDS.tags = () => {
   if (needData()) return;
   const tc = tagCounts();
@@ -2323,6 +2392,7 @@ COMMANDS.tags = () => {
 };
 COMMANDS.topics = COMMANDS.tags;
 
+/** Print entry counts and relative bars by date's YYYY-MM prefix in ascending order; report missing data. */
 COMMANDS.calendar = () => {
   if (needData()) return;
   const months = {};
@@ -2336,6 +2406,11 @@ COMMANDS.calendar = () => {
 };
 COMMANDS.cal = COMMANDS.calendar;
 
+/**
+ * Return sentence candidates from prose, skipping fenced code and structural
+ * Markdown lines. Candidates need ending punctuation and 40–240 UTF-16 code
+ * units before emphasis removal; reject link, code, and HTML marker characters.
+ */
 function fortuneSentences(body) {
   const out = [];
   let fenced = false;
@@ -2351,6 +2426,7 @@ function fortuneSentences(body) {
   });
   return out;
 }
+/** Print a random candidate sentence from a shuffled entry search with attribution, or a no-fortune/data message. */
 COMMANDS.fortune = () => {
   if (needData()) return;
   const order = POST_NAMES.slice().sort(() => Math.random() - 0.5);
@@ -2365,6 +2441,7 @@ COMMANDS.fortune = () => {
   print('the forest is quiet. no fortune today.', 'dim');
 };
 
+/** List entries dated after the previous visit's date with unread markers, or print a first-visit/no-new/data message. */
 COMMANDS.whatsnew = () => {
   if (needData()) return;
   if (!PREV_VISIT) { print("everything is new. start with 'read 0'.", 'dim'); return; }
@@ -2377,6 +2454,7 @@ COMMANDS.whatsnew = () => {
 
 // Every localStorage key the terminal owns. Later features append here.
 const RESET_KEYS = ['owlcotPrefs', 'owlcotHistory', 'owlcotVisitor', 'owlcotEngine'];
+/** Attempt to remove owned storage keys, ignoring failures; current in-memory state remains until reload. */
 COMMANDS.reset = () => {
   RESET_KEYS.forEach(k => { try { localStorage.removeItem(k); } catch (e) {} });
   print('forest reset. reload to start over.', 'success');
@@ -2411,6 +2489,7 @@ COMMANDS.blog = COMMANDS.web;
 
 COMMANDS.echo = (args) => print(escapeHtml(args.join(' ')));
 COMMANDS.date = () => print(new Date().toString());
+/** Print the system name, release for -r, or full identity for -a (which takes precedence). */
 COMMANDS.uname = (args) => {
   const rel = ENGINE.version + '-' + ENGINE.codename;
   if (args.includes('-a')) print('Owlcot ' + rel + ' x86_64 GNU/Hoot (static, no server)');
@@ -2478,6 +2557,11 @@ function finishMailCompose() {
 }
 
 // =================== SUBMIT ===================
+/**
+ * Echo and save a nonblank command, split it on whitespace, and dispatch it
+ * without shell quoting. Print handler errors, including async rejections,
+ * and offer suggestions for unknown commands when close matches exist.
+ */
 function submitCommand(raw) {
   const val = raw.trim();
   const pathStr = state.cwd === '~' ? ':~' : ':' + state.cwd.replace(/^~\//, '~/');
@@ -2624,9 +2708,11 @@ const DAYPART_LINES = {
   day: 'daylight. the owls are sleeping — tread softly.',
   dusk: 'dusk. the fireflies are clocking in.',
 };
+/** Return whether the pointer is coarse or viewport width is at most 640 px; return false if detection throws. */
 function wantsChips() {
   try { return window.matchMedia('(pointer: coarse)').matches || window.innerWidth <= 640; } catch (e) { return false; }
 }
+/** Append six command buttons that submit commands and return focus to the input. */
 function printQuickChips() {
   const row = print('', 'quick-chips');
   row.innerHTML = '';
@@ -2638,6 +2724,7 @@ function printQuickChips() {
     row.appendChild(b);
   });
 }
+/** Print the welcome card, navigation hints, and a greeting for the current local time period. */
 function printMotd() {
   const hint = '<div class="motd">'
     + '<p><span class="amber" style="font-weight:600">owlcot</span> <span class="dim">—</span> a journal that behaves like a terminal.</p>'
@@ -2665,6 +2752,11 @@ function titleCard() {
   void card;
 }
 
+/**
+ * Initialize terminal preferences and visuals, then show welcome/release cards
+ * and visitor greetings. Shorten progress delays on return visits and honor
+ * reduced motion. Save the visit timestamp and focus input after typing finishes.
+ */
 async function boot() {
   applyTheme(state.theme, true);
   document.getElementById('crtOverlay').style.opacity = state.crt ? '1' : '0';
