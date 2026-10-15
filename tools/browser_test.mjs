@@ -575,6 +575,151 @@ await sleep(1200);
   await pb.close();
 }
 
+// ---------- easter eggs (task 5) ----------
+{
+  const run = async (pg, cmd, settle = 400) => {
+    await pg.focus('#cmdInput');
+    await pg.keyboard.type(cmd, { delay: 5 });
+    await pg.keyboard.press('Enter');
+    await sleep(settle);
+  };
+  const outText = pg => pg.$eval('#output', e => e.innerText);
+  const lastLines = async (pg, n = 6) => (await outText(pg)).split('\n').slice(-n).join('\n');
+
+  const pe = await newPage();
+  await pe.evaluateOnNewDocument(() => { try { if (!sessionStorage.getItem('__e')) { localStorage.clear(); sessionStorage.setItem('__e', '1'); } } catch (e) {} });
+  await pe.goto(BASE + '/', { waitUntil: 'load' });
+  await sleep(4000);
+  const nerrE = errors.length;
+
+  await run(pe, 'eggs');
+  check('eggs: starts at 0 of 12', (await lastLines(pe, 3)).includes('you have found 0 of 12 easter eggs.'));
+  await run(pe, 'xyzzy');
+  check('eggs: xyzzy', (await lastLines(pe, 3)).includes('Nothing happens.'));
+  await run(pe, 'eggs');
+  check('eggs: count increases after xyzzy', (await lastLines(pe, 3)).includes('you have found 1 of 12 easter eggs.'));
+  check('eggs: stored in owlcotEggs', await pe.evaluate(() => JSON.parse(localStorage.getItem('owlcotEggs') || '[]').includes('xyzzy')));
+  await run(pe, 'xyzzy');
+  await run(pe, 'eggs');
+  check('eggs: repeat find not double counted', (await lastLines(pe, 3)).includes('you have found 1 of 12'));
+
+  await run(pe, 'coffee');
+  check('eggs: coffee 418', (await lastLines(pe, 4)).includes("HTTP 418 I'm a teapot"));
+  check('eggs: coffee link', await pe.evaluate(() => !!document.querySelector('#output a[href*="buymeacoffee"]')));
+  await run(pe, 'make coffee');
+  check('eggs: make coffee 418', (await lastLines(pe, 4)).includes("HTTP 418 I'm a teapot"));
+  await run(pe, 'make <b>x</b>');
+  check('eggs: make other escaped', (await lastLines(pe, 3)).includes("make: *** No rule to make target '<b>x</b>'.  Stop.") && !(await pe.evaluate(() => !!document.querySelector('#output b'))));
+  await run(pe, '42');
+  check('eggs: 42', (await lastLines(pe, 3)).includes('the answer is 42. the question was lost between sessions.'));
+  await run(pe, 'git blame');
+  check('eggs: git blame', (await lastLines(pe, 3)).includes('it was the previous session. it always is.'));
+  await run(pe, 'git status');
+  check('eggs: git other', (await lastLines(pe, 3)).includes('fatal: not a git repository (the forest has no .git, only roots)'));
+  await run(pe, 'sudo');
+  check('eggs: plain sudo unchanged', (await lastLines(pe, 4)).includes('not in the sudoers file'));
+  await run(pe, 'sudo make me a sandwich');
+  check('eggs: sudo sandwich', (await lastLines(pe, 2)).trim().endsWith('okay.'));
+  await run(pe, 'ping owl', 1600);
+  {
+    const t = await outText(pe);
+    check('eggs: ping owl', /64 bytes from owl: icmp_seq=1 ttl=64 time=hoo ms/.test(t) && /icmp_seq=3/.test(t) && t.includes('--- owl ping statistics: 3 hoots transmitted, 3 received ---'));
+  }
+  await run(pe, 'hoot hoot hoot');
+  check('eggs: hoot x3', (await lastLines(pe, 3)).includes('the forest hoots back. three times. ominously.'));
+  await run(pe, 'hoot hoot', 900);
+  check('eggs: hoot with one arg stays plain', !(await lastLines(pe, 2)).includes('ominously'));
+  await run(pe, 'hoot hoot nope', 900);
+  check('eggs: hoot with non-hoot arg stays plain', !(await lastLines(pe, 2)).includes('ominously'));
+  await run(pe, 'hoot', 900);
+  check('eggs: plain hoot still owl', !(await lastLines(pe, 2)).includes('ominously'));
+  await run(pe, 'lumos');
+  check('eggs: lumos', (await lastLines(pe, 2)).includes('lumos.') && await pe.evaluate(() => document.body.classList.contains('lumos')));
+  check('eggs: lumos brightens forest', await pe.evaluate(() => getComputedStyle(document.querySelector('#ambientForest')).filter !== 'none'));
+  await run(pe, 'nox');
+  check('eggs: nox', (await lastLines(pe, 2)).includes('nox.') && await pe.evaluate(() => !document.body.classList.contains('lumos')));
+
+  // exit x3
+  await run(pe, 'exit');
+  await run(pe, 'logout');
+  check('eggs: exit 1-2 normal', !(await outText(pe)).includes('fine. you may leave.'));
+  await run(pe, 'exit');
+  check('eggs: exit third', (await lastLines(pe, 3)).includes("fine. you may leave. (you won't.)"));
+
+  // sl
+  await run(pe, 'sl', 600);
+  check('eggs: sl owl in flight', await pe.evaluate(() => { const t = document.querySelector('#output .sl-track'); return !!t && getComputedStyle(t.querySelector('.owl-art')).animationName.includes('slFly'); }));
+  await sleep(3000);
+  check('eggs: sl cleans up', await pe.evaluate(() => !document.querySelector('#output .sl-track')));
+  // matrix
+  await run(pe, 'matrix', 600);
+  check('eggs: matrix 12 lines', await pe.evaluate(() => { const m = document.querySelector('#output .matrix'); return !!m && m.textContent.split('\n').length === 12; }));
+  await sleep(3200);
+  check('eggs: matrix wakes up', (await lastLines(pe, 2)).includes('wake up, hermes…'));
+  {
+    const n1 = await pe.$eval('#output', e => e.getElementsByTagName('*').length);
+    const t1 = await pe.$eval('#output .matrix', e => e.textContent);
+    await sleep(500);
+    check('eggs: matrix stops spawning', n1 === await pe.$eval('#output', e => e.getElementsByTagName('*').length) && t1 === await pe.$eval('#output .matrix', e => e.textContent));
+  }
+
+  // konami + history intact
+  await run(pe, 'echo hi');
+  await pe.focus('#cmdInput');
+  await pe.keyboard.press('ArrowUp');
+  check('eggs: history nav intact with tracker', await pe.$eval('#cmdInput', e => e.value) === 'echo hi');
+  await pe.$eval('#cmdInput', e => { e.value = ''; e.dispatchEvent(new Event('input')); });
+  for (const k of ['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','b','a']) await pe.keyboard.press(k);
+  await sleep(500);
+  check('eggs: konami golden owl', await pe.evaluate(() => { const g = document.querySelector('#output .owl-art.golden'); return !!g && getComputedStyle(g).color === 'rgb(255, 215, 0)'; }));
+  check('eggs: konami message', (await lastLines(pe, 3)).includes('you found the golden owl.'));
+  await run(pe, 'eggs');
+  check('eggs: all 12 found', (await lastLines(pe, 3)).includes('you have found 12 of 12 easter eggs.'));
+  await run(pe, 'reset');
+  check('eggs: reset clears owlcotEggs', await pe.evaluate(() => localStorage.getItem('owlcotEggs') === null));
+  await run(pe, 'help', 300);
+  await pe.keyboard.press('Shift'); // any keydown completes the typed-out text
+  await sleep(300);
+  {
+    const h = await outText(pe);
+    check('eggs: whatsnew in help', h.includes('whatsnew          entries since your last visit'));
+    check('eggs: tips line present', h.includes('Some commands are not in this manual. The forest rewards curiosity.'));
+    check('eggs: eggs not in help', !/\b(xyzzy|matrix|lumos|sandwich)\b/.test(h.slice(h.lastIndexOf('NAME'))));
+  }
+  await run(pe, 'man whatsnew');
+  check('eggs: man whatsnew', /WHATSNEW\(1\)/.test(await outText(pe)));
+  check('eggs: no page errors', errors.length === nerrE, errors.slice(nerrE).join(' | '));
+  await pe.close();
+
+  // reduced motion: sl & matrix static, no late DOM
+  const pr = await newPage();
+  await pr.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'reduce' }]);
+  await pr.goto(BASE + '/', { waitUntil: 'load' });
+  await sleep(1500);
+  await run(pr, 'sl', 200);
+  await run(pr, 'matrix', 200);
+  {
+    const n1 = await pr.$eval('#output', e => e.getElementsByTagName('*').length);
+    const txt1 = await outText(pr);
+    await sleep(500);
+    check('eggs: reduced sl+matrix no late nodes', n1 === await pr.$eval('#output', e => e.getElementsByTagName('*').length) && txt1 === await outText(pr));
+    check('eggs: reduced matrix static frame + line', (await lastLines(pr, 2)).includes('wake up, hermes…') && await pr.evaluate(() => !!document.querySelector('#output .matrix')));
+    check('eggs: reduced sl prints owl once', await pr.evaluate(() => document.querySelectorAll('#output .sl-track').length === 0 && document.querySelectorAll('#output .sl-static').length === 1));
+  }
+  await pr.close();
+
+  // storage blocked
+  const pq = await newPage();
+  const nerrQ = errors.length;
+  await pq.evaluateOnNewDocument(() => { Object.defineProperty(window, 'localStorage', { get() { throw new Error('blocked'); } }); });
+  await pq.goto(BASE + '/', { waitUntil: 'load' });
+  await sleep(4000);
+  await run(pq, 'xyzzy');
+  await run(pq, 'eggs');
+  check('eggs: storage blocked works', (await lastLines(pq, 3)).includes('easter eggs.') && errors.length === nerrQ, errors.slice(nerrQ).join(' | '));
+  await pq.close();
+}
+
 // ---------- noData page: OWL_DATA missing ----------
 {
   const pn = await newPage();

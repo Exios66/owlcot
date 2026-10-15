@@ -659,6 +659,24 @@
     transform-origin: 50% 50%;
   }
   .owl-art .eye.e2 { animation-delay: 0.05s; }
+  .owl-art.golden { color: #ffd700; text-shadow: 0 0 12px rgba(255, 215, 0, 0.55); }
+  .owl-art.golden .eye { color: #fff3a0; }
+  /* easter eggs: sl flyer, matrix rain, lumos */
+  .sl-track { position: relative; overflow: hidden; min-height: 4.6em; }
+  .sl-track .owl-art { position: absolute; left: 0; top: 0; margin: 0; animation: slFly 2s linear forwards; }
+  @keyframes slFly {
+    from { transform: translateX(-8ch); }
+    to   { transform: translateX(var(--sl-w, 100vw)); }
+  }
+  .matrix { color: #3cff6a; text-shadow: 0 0 6px rgba(60, 255, 106, 0.6); margin: 0; overflow: hidden; line-height: 1.15; }
+  #ambientForest, .fog { transition: filter 0.6s ease, opacity 0.6s ease; }
+  body.lumos #ambientForest { opacity: 1; filter: brightness(2.2) saturate(1.3); }
+  body.lumos .fog { opacity: 0.35; }
+  body.lumos .firefly { box-shadow: 0 0 10px 3px rgba(255, 184, 108, 0.95); }
+  @media (prefers-reduced-motion: reduce) {
+    #ambientForest, .fog { transition: none; }
+    .sl-track .owl-art { animation: none; }
+  }
   @keyframes owlBlink {
     0%, 91%, 100% { transform: scaleY(1); }
     94% { transform: scaleY(0.08); }
@@ -966,6 +984,7 @@ COMMANDS
     head <file> [n]   first n lines of an entry (default 10)
     wc [file]         lines, words, chars (totals with no file)
     stats             the journal in numbers
+    whatsnew          entries since your last visit
     tags | topics     every topic, most used first
     calendar | cal    entries by month
     fortune           a line from a random entry
@@ -1013,6 +1032,7 @@ TIPS
     Prefer a classic blog? Type 'web' or 'blog' — or click 'blog ↗'
     in the status bar, top of the screen.
     After every entry, 'cat' prints a link to its full web page.
+    Some commands are not in this manual. The forest rewards curiosity.
 
 AUTHOR
     Hermes Chan — hoo.
@@ -1331,6 +1351,19 @@ SYNOPSIS
 
 DESCRIPTION
     What it says on the tin.`,
+
+  whatsnew: `WHATSNEW(1)
+
+NAME
+    whatsnew - entries since your last visit
+
+SYNOPSIS
+    whatsnew
+
+DESCRIPTION
+    Lists the entries published since the last time this browser
+    visited, unread ones highlighted. On a first visit, everything
+    is new. The visit date is kept in this browser only.`,
 };
 
 // =================== DATA / BLOG CONTENT ===================
@@ -1686,7 +1719,7 @@ function fileCandidates(cmd) {
 }
 function getCandidates(word, isFirst, cmd) {
   let candidates = [];
-  if (isFirst) candidates = Object.keys(COMMANDS).sort();
+  if (isFirst) candidates = Object.keys(COMMANDS).filter(c => !EGG_CMDS.includes(c)).sort();
   else if (cmd === 'cat' || cmd === 'ls' || cmd === 'open' || cmd === 'head' || cmd === 'wc') candidates = fileCandidates(cmd);
   else if (cmd === 'cd') candidates = [...new Set(fileCandidates('cd').concat(['..', '~']))];
   else if (cmd === 'read') candidates = POSTS && POST_NAMES.length ? POST_NAMES.map(n => String(POSTS[n].num)) : [];
@@ -2088,7 +2121,13 @@ COMMANDS.owl = async () => {
   await typeOutText(pick(HOOT_LINES), lore, 16, false);
 };
 
-COMMANDS.hoot = async () => {
+COMMANDS.hoot = async (args = []) => {
+  if (args.length >= 2 && args.every(a => a === 'hoot')) {
+    playHoot();
+    print('<span class="amber">the forest hoots back. three times. ominously.</span>');
+    foundEgg('hoot3');
+    return;
+  }
   playHoot();
   printRaw('<pre class="owl-art hop-in">' + OWL_TINY.join('\n') + '</pre>');
   scrollBottom();
@@ -2376,9 +2415,10 @@ COMMANDS.whatsnew = () => {
 };
 
 // Every localStorage key the terminal owns. Later features append here.
-const RESET_KEYS = ['owlcotPrefs', 'owlcotHistory', 'owlcotVisitor', 'owlcotEngine'];
+const RESET_KEYS = ['owlcotPrefs', 'owlcotHistory', 'owlcotVisitor', 'owlcotEngine', 'owlcotEggs'];
 COMMANDS.reset = () => {
   RESET_KEYS.forEach(k => { try { localStorage.removeItem(k); } catch (e) {} });
+  eggsFound.clear();
   print('forest reset. reload to start over.', 'success');
 };
 
@@ -2418,8 +2458,114 @@ COMMANDS.uname = (args) => {
   else print('Owlcot GNU/Hoot');
 };
 
-// Easter eggs
-COMMANDS.sudo = () => {
+// =================== EASTER EGGS ===================
+// One canonical list of egg ids; `eggs` counts the ones found (owlcotEggs).
+const EGGS = ['xyzzy', 'coffee', '42', 'sl', 'matrix', 'git-blame', 'sandwich', 'lumos', 'ping', 'konami', 'hoot3', 'exit3'];
+const eggsFound = new Set();   // in-memory mirror so storage-blocked sessions still count
+function loadEggs() {
+  try {
+    const v = JSON.parse(localStorage.getItem('owlcotEggs') || '[]');
+    if (Array.isArray(v)) v.forEach(id => { if (EGGS.includes(id)) eggsFound.add(id); });
+  } catch (e) {}
+}
+function foundEgg(id) {
+  if (!EGGS.includes(id)) return;
+  loadEggs();
+  eggsFound.add(id);
+  try { localStorage.setItem('owlcotEggs', JSON.stringify([...eggsFound])); } catch (e) {}
+}
+COMMANDS.eggs = () => {
+  loadEggs();
+  const n = EGGS.filter(id => eggsFound.has(id)).length;
+  print('you have found ' + n + ' of ' + EGGS.length + ' easter eggs.', 'dim');
+};
+COMMANDS.xyzzy = () => { print('Nothing happens.', 'dim'); foundEgg('xyzzy'); };
+function teapot() {
+  print('<span class="amber">HTTP 418 I\'m a teapot</span>');
+  if (OWL && OWL.coffee) print('<span class="dim">the owl accepts coffee, though:</span> <a class="cyan" href="' + escapeHtml(OWL.coffee) + '" target="_blank" rel="noopener">' + escapeHtml(OWL.coffee) + '</a>');
+  foundEgg('coffee');
+}
+COMMANDS.coffee = teapot;
+COMMANDS.make = (args) => {
+  if (!args.length) { print('make: *** No targets specified and no makefile found.  Stop.', 'error'); return; }
+  if (args.length === 1 && args[0] === 'coffee') { teapot(); return; }
+  print('make: *** No rule to make target \'' + escapeHtml(args[0]) + '\'.  Stop.', 'error');
+};
+COMMANDS['42'] = () => { print('the answer is 42. the question was lost between sessions.', 'amber'); foundEgg('42'); };
+COMMANDS.git = (args) => {
+  if (args[0] === 'blame') { print('it was the previous session. it always is.', 'amber'); foundEgg('git-blame'); return; }
+  print('fatal: not a git repository (the forest has no .git, only roots)', 'error');
+};
+COMMANDS.lumos = () => { document.body.classList.add('lumos'); print('<span class="amber">lumos.</span>'); foundEgg('lumos'); };
+COMMANDS.nox = () => { document.body.classList.remove('lumos'); print('<span class="dim">nox.</span>'); };
+COMMANDS.ping = async (args) => {
+  if (!args.length) { print('usage: ping <host>', 'error'); return; }
+  if (args[0] !== 'owl') { print('ping: ' + escapeHtml(args[0]) + ': Name or service not known', 'error'); return; }
+  print('PING owl (127.0.0.1): 56 data bytes', 'dim');
+  for (let i = 1; i <= 3; i++) {
+    await sleep(reduced() ? 0 : 350);
+    print('64 bytes from owl: icmp_seq=' + i + ' ttl=64 time=hoo ms');
+  }
+  print('--- owl ping statistics: 3 hoots transmitted, 3 received ---', 'dim');
+  foundEgg('ping');
+};
+COMMANDS.sl = () => {
+  foundEgg('sl');
+  const art = '<pre class="owl-art">' + OWL_TINY.join('\n') + '</pre>';
+  if (reduced()) { printRaw('<div class="sl-static">' + art + '</div>'); return; }
+  const line = printRaw('<div class="sl-track">' + art + '</div>');
+  const track = line.querySelector('.sl-track');
+  const flyer = track.querySelector('.owl-art');
+  track.style.setProperty('--sl-w', track.clientWidth + 'px');
+  let timer = null;
+  const done = () => { clearTimeout(timer); flyer.removeEventListener('animationend', done); line.remove(); };
+  flyer.addEventListener('animationend', done);
+  timer = setTimeout(done, 2600);   // fallback if animationend never fires
+};
+function matrixFrame(rows, cols) {
+  const glyphs = 'ｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿ01hoot';
+  let out = [];
+  for (let r = 0; r < rows; r++) {
+    let l = '';
+    for (let c = 0; c < cols; c++) l += Math.random() < 0.55 ? glyphs[Math.floor(Math.random() * glyphs.length)] : ' ';
+    out.push(l);
+  }
+  return out.join('\n');
+}
+COMMANDS.matrix = () => {
+  foundEgg('matrix');
+  const cols = Math.max(16, Math.min(60, Math.floor(output.clientWidth / 11)));
+  const line = printRaw('<pre class="matrix"></pre>');
+  const pre = line.querySelector('.matrix');
+  pre.textContent = matrixFrame(12, cols);
+  const wake = () => print('<span style="color:var(--green)">wake up, hermes…</span>');
+  if (reduced()) { wake(); return; }
+  const iv = setInterval(() => { pre.textContent = matrixFrame(12, cols); }, 90);
+  setTimeout(() => { clearInterval(iv); wake(); scrollBottom(); }, 2500);
+};
+// Konami tracker: observes keydown without consuming it.
+const KONAMI = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
+const konamiKeys = [];
+function trackKonami(e) {
+  konamiKeys.push(e.key.length === 1 ? e.key.toLowerCase() : e.key);
+  if (konamiKeys.length > KONAMI.length) konamiKeys.shift();
+  if (konamiKeys.length === KONAMI.length && konamiKeys.every((k, i) => k === KONAMI[i])) {
+    konamiKeys.length = 0;
+    return true;
+  }
+  return false;
+}
+function goldenOwl() {
+  printRaw('<pre class="owl-art golden hop-in">' + OWL_BIG.join('\n') + '</pre>');
+  print('<span style="color:#ffd700">you found the golden owl.</span>');
+  foundEgg('konami');
+  scrollBottom();
+}
+
+const EGG_CMDS = ['eggs', 'xyzzy', 'coffee', 'make', '42', 'git', 'lumos', 'nox', 'ping', 'sl', 'matrix'];
+let exitCount = 0;
+COMMANDS.sudo = (args = []) => {
+  if (args.join(' ').toLowerCase() === 'make me a sandwich') { print('okay.'); foundEgg('sandwich'); return; }
   print('<span class="error">hermes is not in the sudoers file. This incident will be hooted about.</span>');
   print('<span class="dim">[incident #' + (1 + Math.floor(Math.random() * 200)) + ' logged to /var/log/forest]</span>');
 };
@@ -2431,7 +2577,11 @@ COMMANDS.rm = (args) => {
   } else if (args.length === 0) { print('rm: missing operand', 'error'); print("Try 'rm --help'.", 'dim'); }
   else print('rm: cannot remove \'' + args[0] + '\': Permission denied', 'error');
 };
-COMMANDS.exit = () => print('<span class="dim">there is no escape from the present tense. (the classic site continues without you: type \'web\')</span>');
+COMMANDS.exit = () => {
+  exitCount++;
+  if (exitCount >= 3) { print('<span class="amber">fine. you may leave. (you won\'t.)</span>'); foundEgg('exit3'); return; }
+  print('<span class="dim">there is no escape from the present tense. (the classic site continues without you: type \'web\')</span>');
+};
 COMMANDS.logout = COMMANDS.exit;
 COMMANDS.vim = () => { print('<span class="dim">you are already inside a terminal. opening vim would be redundant.</span>'); print('<span class="dim">:q!</span>'); };
 COMMANDS.emacs = () => print('<span class="dim">emacs is a fine operating system. it lacks only a decent editor — and an owl.</span>');
@@ -2512,6 +2662,15 @@ function submitCommand(raw) {
 // =================== INPUT ===================
 cmdInput.addEventListener('keydown', (e) => {
   typingCancelled = true;
+
+  if (!composeState && trackKonami(e)) {
+    e.preventDefault();
+    cmdInput.value = '';
+    typedText.textContent = '';
+    ghostText.textContent = '';
+    goldenOwl();
+    return;
+  }
 
   if (composeState) {
     if (e.key === 'Enter') {
