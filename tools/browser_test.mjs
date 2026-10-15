@@ -636,8 +636,12 @@ await sleep(1200);
   await run(pe, 'lumos');
   check('eggs: lumos', (await lastLines(pe, 2)).includes('lumos.') && await pe.evaluate(() => document.body.classList.contains('lumos')));
   check('eggs: lumos brightens forest', await pe.evaluate(() => getComputedStyle(document.querySelector('#ambientForest')).filter !== 'none'));
+  await run(pe, 'forest off');
+  await run(pe, 'lumos');
+  check('eggs: lumos does not revive cleared forest', await pe.evaluate(() => getComputedStyle(document.querySelector('#ambientForest')).opacity === '0'));
   await run(pe, 'nox');
   check('eggs: nox', (await lastLines(pe, 2)).includes('nox.') && await pe.evaluate(() => !document.body.classList.contains('lumos')));
+  await run(pe, 'forest on');
 
   // exit x3
   await run(pe, 'exit');

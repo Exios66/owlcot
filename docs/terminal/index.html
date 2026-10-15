@@ -670,7 +670,7 @@
   }
   .matrix { color: #3cff6a; text-shadow: 0 0 6px rgba(60, 255, 106, 0.6); margin: 0; overflow: hidden; line-height: 1.15; }
   #ambientForest, .fog { transition: filter 0.6s ease, opacity 0.6s ease; }
-  body.lumos #ambientForest { opacity: 1; filter: brightness(2.2) saturate(1.3); }
+  body.lumos #ambientForest:not(.off) { filter: brightness(2.2) saturate(1.3); }
   body.lumos .fog { opacity: 0.35; }
   body.lumos .firefly { box-shadow: 0 0 10px 3px rgba(255, 184, 108, 0.95); }
   @media (prefers-reduced-motion: reduce) {
