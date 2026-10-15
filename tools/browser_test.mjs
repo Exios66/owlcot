@@ -102,6 +102,9 @@ const clearInput = async () => page.evaluate(() => {
 });
 
 check('boot: motd advertises the blog', await outHas('classic blog') && await outHas('web'));
+check('boot: engine line shows hermes-engine 2.0.0', await outHas('hermes-engine 2.0.0'));
+check('boot: fresh visitor sees release card', await page.evaluate(() => !!document.querySelector('.release-card')));
+check('boot: owl handle exposes ENGINE', await page.evaluate(() => !!window.__owl && window.__owl.ENGINE.version === '2.0.0'));
 check('boot: tip line mentions blog ↗', await outHas('blog ↗ in the status bar'));
 
 // input display mirrors typing + ghost
@@ -255,6 +258,40 @@ check('Ctrl+L clears screen', (await page.evaluate(() => document.querySelectorA
 await run('motd', 400);
 check('motd reprints', await outHas('a journal that behaves like a terminal'));
 
+// ---- hermes-engine 2.0.0 ----
+const lastOut = async () => (await outText());
+await run('clear', 200);
+await run('version', 300);
+check('version: engine string + codename', await outHas('hermes-engine 2.0.0') && await outHas('nocturne'));
+await run('clear', 200); await run('ver', 300);
+check('ver alias', await outHas('hermes-engine 2.0.0'));
+await run('clear', 200); await run('uname -a', 300);
+check('uname -a has 2.0.0', await outHas('2.0.0') && await outHas('GNU/Hoot'));
+await run('clear', 200); await run('uname -r', 300);
+check('uname -r exact', (await lastOut()).split('\n').some(l => l.trim() === '2.0.0-nocturne'));
+await run('clear', 200); await run('neofetch', 300);
+check('neofetch shows hermes-engine 2.0.0', await outHas('hermes-engine 2.0.0'));
+await run('clear', 200); await run('changelog', 300);
+{
+  const t = await lastOut();
+  check('changelog: 2.0.0 before 1.0.0', t.includes('2.0.0') && t.includes('1.0.0') && t.indexOf('2.0.0') < t.indexOf('1.0.0'));
+}
+await run('clear', 200); await run('changelog 1.0.0', 300);
+{
+  const t = await lastOut();
+  check('changelog 1.0.0 only', t.includes('1.0.0') && t.includes('darkforest') && !t.includes('nocturne'));
+}
+await run('clear', 200); await run('changelog 9.9.9', 300);
+check('changelog unknown version', await outHas('no such release'));
+await run('clear', 200); await run('hermes --version', 300);
+check('hermes --version', await outHas('hermes-engine 2.0.0 (nocturne)'));
+await run('clear', 200); await run('hermes', 300);
+check('hermes status line', await outHas('hermes-engine') && await outHas('entries'));
+await run('clear', 200); await run('forest release', 600);
+check('forest release prints card', await page.evaluate(() => !!document.querySelector('.release-card')) && await outHas("type 'changelog' for the full notes"));
+await run('clear', 200); await run('man changelog', 300);
+check('man changelog', await outHas('CHANGELOG(1)'));
+
 await page.screenshot({ path: SHOTS + '/desktop-terminal.png' });
 
 // ---------- PAGE 2: redirect stub ----------
@@ -343,6 +380,28 @@ await sleep(1200);
   const n = await p6.evaluate(() => document.querySelectorAll('#ambientFireflies .firefly').length);
   check('reduced-motion: fireflies not spawned', n === 0, `count=${n}`);
   check('reduced-motion: boot still completes', await p6.evaluate(() => !!document.querySelector('.motd')));
+}
+
+// ---------- PAGE 7: release card once per version ----------
+{
+  const p7 = await newPage();
+  // the shared profile already saw the card on page 1: clear storage once (sessionStorage survives reload)
+  await p7.evaluateOnNewDocument(() => { try { if (!sessionStorage.getItem('fresh')) { localStorage.clear(); sessionStorage.setItem('fresh', '1'); } } catch (e) {} });
+  await p7.goto(BASE + '/', { waitUntil: 'load' });
+  await sleep(3200);
+  check('release: card on first visit', await p7.$$eval('.release-card', n => n.length) === 1);
+  check('release: card persisted seenEngine', await p7.$eval('body', () => localStorage.getItem('owlcotEngine')) === '2.0.0');
+  await p7.reload({ waitUntil: 'load' });
+  await sleep(3200);
+  check('release: card absent on return', await p7.$$eval('.release-card', n => n.length) === 0);
+  await p7.close();
+  // release card must not overflow a 390px viewport
+  const p8 = await newPage(390, 844);
+  await p8.evaluateOnNewDocument(() => { try { localStorage.clear(); } catch (e) {} });
+  await p8.goto(BASE + '/', { waitUntil: 'load' });
+  await sleep(3200);
+  check('release: card fits at 390px', await p8.$eval('body', () => !!document.querySelector('.release-card') && document.documentElement.scrollWidth <= window.innerWidth + 1 && document.querySelector('.release-card').getBoundingClientRect().right <= window.innerWidth));
+  await p8.close();
 }
 
 await browser.close();

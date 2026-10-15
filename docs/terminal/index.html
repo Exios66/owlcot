@@ -570,6 +570,19 @@
   }
   .neofetch { color: var(--fg); line-height: 1.35; margin: 8px 0; }
   .lore-line { color: var(--fg-dim); }
+  .release-card {
+    margin: 10px 0 8px;
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--cyan);
+    background: linear-gradient(135deg, rgba(103,232,249,0.05), rgba(103,232,249,0.01));
+    padding: 10px 16px;
+    border-radius: 0 4px 4px 0;
+    max-width: 100%;
+  }
+  .release-card.fade { animation: releaseIn 0.9s ease-out both; }
+  @keyframes releaseIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+  .release-card pre { margin: 0 0 6px; color: var(--amber); line-height: 1.2; }
+  .release-card p { margin: 3px 0; overflow-wrap: anywhere; }
   .motd {
     margin: 10px 0 8px;
     border: 1px solid var(--border);
@@ -891,6 +904,21 @@ const FOREST_LORE = [
   'the forest remembers. that is its whole job.',
 ];
 
+// =================== ENGINE / RELEASES ===================
+const ENGINE = { name: 'hermes-engine', version: '2.0.0', codename: 'nocturne', date: '2026-10-15' };
+const CHANGELOG = [
+  { version: '2.0.0', codename: 'nocturne', date: '2026-10-15', notes: [
+    'version, changelog and hermes: the engine finally knows its own name',
+    'new commands: random, next, prev, grep, stats, fortune and friends',
+    'the shell learns you: adaptive greetings, read tracking, touch chips',
+    'easter eggs, buried in the roots',
+  ] },
+  { version: '1.0.0', codename: 'darkforest', date: '2026-08-08', notes: [
+    'the terminal landing page, forest/owl/hoot, themes, crt, sound',
+  ] },
+];
+function engineString() { return ENGINE.name + ' ' + ENGINE.version + ' (' + ENGINE.codename + ')'; }
+
 // =================== HELP / MAN ===================
 const HELP_TEXT = `NAME
     owlcot - the journal of Hermes Chan, in terminal form
@@ -920,12 +948,16 @@ COMMANDS
     owl               summon the owl
     hoot              a smaller owl says hoo
     forest [on|off]   enter the dark forest (or toggle the treeline)
+    forest release    show the release card again
     motd              print the welcome card again
     man <command>     manual for a command
     clear             clear screen (also Ctrl+L)
     date              current date and time
     echo <text>       print text back
-    uname             system name
+    uname [-a|-r]     system name (-r: engine release)
+    version | ver     which hermes-engine is this?
+    changelog [ver]   release notes (alias: releases)
+    hermes [--help]   engine status
 
 SETTINGS
     theme [name]      amber | green | cyan
@@ -1146,17 +1178,62 @@ NAME
     forest - the dark forest of forgotten sessions
 
 SYNOPSIS
-    forest [on|off]
+    forest [on|off|release]
 
 DESCRIPTION
     With no argument, renders a view deep into the dark forest
     — pines, moon, mist, fireflies, and one small owl keeping
     watch. With 'on' or 'off', toggles the ambient treeline
-    that lives at the bottom of the screen.
+    that lives at the bottom of the screen. 'release' shows the
+    release card for the current hermes-engine again.
 
 EXAMPLES
     forest
-    forest off`,
+    forest off
+    forest release`,
+
+  version: `VERSION(1)
+
+NAME
+    version - which hermes-engine is running
+
+SYNOPSIS
+    version
+    ver
+
+DESCRIPTION
+    Prints the engine name, version and codename, and the date
+    it hatched. 'uname -r' prints just the release string.`,
+
+  changelog: `CHANGELOG(1)
+
+NAME
+    changelog - release notes for hermes-engine
+
+SYNOPSIS
+    changelog [version]
+    releases [version]
+
+DESCRIPTION
+    Lists every release, newest first. Give a version number
+    to see only that release.
+
+EXAMPLES
+    changelog
+    changelog 1.0.0`,
+
+  hermes: `HERMES(1)
+
+NAME
+    hermes - the engine under the shell
+
+SYNOPSIS
+    hermes [--version | --help]
+
+DESCRIPTION
+    With no argument, prints a one-line engine status.
+    '--version' prints the engine string; '--help' lists
+    what the engine can tell you about itself.`,
 
   hoot: `HOOT(1)
 
@@ -1491,7 +1568,9 @@ function getCandidates(word, isFirst, cmd) {
   else if (cmd === 'read') candidates = POSTS && POST_NAMES.length ? POST_NAMES.map(n => String(POSTS[n].num)) : [];
   else if (cmd === 'man' || cmd === 'help') candidates = [...new Set(Object.keys(MAN_PAGES).concat(Object.keys(COMMANDS)))];
   else if (cmd === 'theme') candidates = Object.keys(THEMES);
-  else if (cmd === 'crt' || cmd === 'sound' || cmd === 'forest') candidates = ['on', 'off'];
+  else if (cmd === 'crt' || cmd === 'sound') candidates = ['on', 'off'];
+  else if (cmd === 'forest') candidates = ['on', 'off', 'release'];
+  else if (cmd === 'changelog' || cmd === 'releases') candidates = CHANGELOG.map(r => r.version);
   else if (cmd === 'mail') candidates = [];
   return candidates;
 }
@@ -1764,12 +1843,68 @@ COMMANDS.tree = () => {
   printRaw('<pre class="tree">' + escapeHtml(lines.join('\n')) + '</pre>');
 };
 
+function renderReleaseNotes(r) {
+  const head = '<span class="amber">' + escapeHtml(ENGINE.name + ' ' + r.version) + '</span> <span class="cyan">"' + escapeHtml(r.codename) + '"</span> <span class="dim">— ' + escapeHtml(r.date) + '</span>';
+  return head + '\n' + r.notes.map(n => '  <span class="dim">-</span> ' + escapeHtml(n)).join('\n');
+}
+
+function printReleaseCard() {
+  const art = ['   _/\\/\\_', '  /      \\', ' |  (o,o)  |', ' |  /)_)   |', '  \\______/'];
+  const cur = CHANGELOG[0];
+  const notes = cur.notes.slice(0, 3).map(n => '<p><span class="dim">-</span> ' + escapeHtml(n) + '</p>').join('');
+  printRaw('<div class="release-card' + (reduced() ? '' : ' fade') + '">'
+    + '<pre>' + escapeHtml(art.join('\n')) + '</pre>'
+    + '<p><span class="amber">' + escapeHtml(ENGINE.name) + ' v' + escapeHtml(ENGINE.version) + '</span> <span class="cyan">"' + escapeHtml(ENGINE.codename) + '"</span> has hatched in the dark forest</p>'
+    + notes
+    + '<p class="dim">type \'changelog\' for the full notes</p>'
+    + '</div>');
+}
+
+function maybeAnnounceRelease() {
+  let seen = null;
+  try { seen = localStorage.getItem('owlcotEngine'); } catch (e) {}
+  if (seen === ENGINE.version) return false;
+  printReleaseCard();
+  try { localStorage.setItem('owlcotEngine', ENGINE.version); } catch (e) {}
+  return true;
+}
+
+COMMANDS.version = () => {
+  print('<span class="amber">' + escapeHtml(engineString()) + '</span> <span class="dim">— hatched ' + escapeHtml(ENGINE.date) + '</span>');
+};
+COMMANDS.ver = COMMANDS.version;
+
+COMMANDS.changelog = (args) => {
+  let list = CHANGELOG;
+  if (args[0]) {
+    const want = args[0].replace(/^v/i, '');
+    list = CHANGELOG.filter(r => r.version === want);
+    if (!list.length) {
+      print('changelog: no such release \'' + escapeHtml(args[0]) + '\'', 'error');
+      print('known releases: ' + CHANGELOG.map(r => r.version).join(', '), 'dim');
+      return;
+    }
+  }
+  printRaw('<pre class="neofetch">' + list.map(renderReleaseNotes).join('\n\n') + '</pre>');
+};
+COMMANDS.releases = COMMANDS.changelog;
+
+COMMANDS.hermes = (args) => {
+  if (args[0] === '--version' || args[0] === '-v') { print(escapeHtml(engineString())); return; }
+  if (args[0] === '--help' || args[0] === '-h') {
+    printManPage('HERMES(1)\n\nUSAGE\n    hermes             engine status\n    hermes --version   print the engine string\n    hermes --help      this message\n\nSEE ALSO\n    version, changelog, uname -r');
+    return;
+  }
+  print('<span class="amber">' + escapeHtml(engineString()) + '</span> <span class="dim">· ' + POST_NAMES.length + ' entries · ' + TOPICS.length + ' topics · up ' + escapeHtml(formatUptime(Date.now() - state.bootTime)) + '</span>');
+};
+
 COMMANDS.neofetch = () => {
   const uptime = formatUptime(Date.now() - state.bootTime);
   const info = [
     '<span class="green">hermes</span>@<span class="green">owlcot</span>',
     '<span class="dim">─────────────────</span>',
-    '<span class="amber">OS</span>:        Owlcot 1.0 (static, no server)',
+    '<span class="amber">OS</span>:        Owlcot ' + ENGINE.version.split('.').slice(0, 2).join('.') + ' (static, no server)',
+    '<span class="amber">Engine</span>:    ' + escapeHtml(engineString()),
     '<span class="amber">Host</span>:      the dark forest',
     '<span class="amber">Kernel</span>:    mkdocs + github-pages',
     '<span class="amber">Shell</span>:     /bin/hoot',
@@ -1816,6 +1951,7 @@ COMMANDS.hoot = async () => {
 };
 
 COMMANDS.forest = async (args) => {
+  if (args[0] === 'release') { printReleaseCard(); scrollBottom(); return; }
   if (args[0] === 'on' || args[0] === 'off') {
     setForest(args[0] === 'on');
     print('forest: ' + (state.forest ? 'growing at the bottom of the screen' : 'cleared'), 'success');
@@ -1918,7 +2054,12 @@ COMMANDS.blog = COMMANDS.web;
 
 COMMANDS.echo = (args) => print(escapeHtml(args.join(' ')));
 COMMANDS.date = () => print(new Date().toString());
-COMMANDS.uname = () => print('Owlcot 1.0.0-darkforest x86_64 GNU/Hoot (static, no server)');
+COMMANDS.uname = (args) => {
+  const rel = ENGINE.version + '-' + ENGINE.codename;
+  if (args.includes('-a')) print('Owlcot ' + rel + ' x86_64 GNU/Hoot (static, no server)');
+  else if (args.includes('-r')) print(rel);
+  else print('Owlcot GNU/Hoot');
+};
 
 // Easter eggs
 COMMANDS.sudo = () => {
@@ -2177,7 +2318,7 @@ async function boot() {
   await sleep(reduced() ? 0 : 150);
 
   const bootLines = [
-    { t: '[ <span class="ok">OK</span> ] owlcot shell 1.0.0 — dark forest edition', d: 55 },
+    { t: '[ <span class="ok">OK</span> ] ' + escapeHtml(engineString()) + ' — dark forest edition', d: 55 },
     { t: '[ <span class="ok">OK</span> ] mounting <span class="cyan">/entries</span> <span class="dim">(' + POST_NAMES.length + ' breadcrumbs)</span>', d: 80 },
     { t: '[ <span class="ok">OK</span> ] mounting <span class="cyan">/topics</span> <span class="dim">(' + TOPICS.length + ' tags)</span>', d: 65 },
     { t: '[ <span class="ok">OK</span> ] growing the dark forest <span class="dim">(ambient treeline: ' + (state.forest ? 'on' : 'off') + ')</span>', d: 70 },
@@ -2195,6 +2336,7 @@ async function boot() {
 
   printMotd();
   printBlank();
+  if (maybeAnnounceRelease()) printBlank();
 
   const hello = print('<span class="dim"></span>', 'lore-line');
   await typeOutText('you are here because you typed something, once. welcome back.', hello, 14, false);
@@ -2203,6 +2345,8 @@ async function boot() {
 
   cmdInput.focus();
 }
+
+window.__owl = { ENGINE };
 
 boot();
 </script>
