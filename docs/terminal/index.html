@@ -939,6 +939,16 @@ COMMANDS
     cd <dir>          change directory (topics/<tag> filters by tag)
     pwd               print working directory
     search <terms>    search titles, tags and descriptions
+    grep <term>       full-text search of entry bodies
+    random | shuffle  read a random entry
+    latest | first    read the newest / the very first entry
+    next | prev       walk the trail, one entry at a time
+    head <file> [n]   first n lines of an entry (default 10)
+    wc [file]         lines, words, chars (totals with no file)
+    stats             the journal in numbers
+    tags | topics     every topic, most used first
+    calendar | cal    entries by month
+    fortune           a line from a random entry
     whoami            who is Hermes Chan?
     mail [addr]       compose a message to the owl
     web | blog        links to the full (non-terminal) site
@@ -958,6 +968,7 @@ COMMANDS
     version | ver     which hermes-engine is this?
     changelog [ver]   release notes (alias: releases)
     hermes [--help]   engine status
+    reset             forget preferences and history
 
 SETTINGS
     theme [name]      amber | green | cyan
@@ -1235,6 +1246,61 @@ DESCRIPTION
     '--version' prints the engine string; '--help' lists
     what the engine can tell you about itself.`,
 
+  grep: `GREP(1)
+
+NAME
+    grep - search the full text of every entry
+
+SYNOPSIS
+    grep <term>
+
+DESCRIPTION
+    Case-insensitive search through entry bodies. Shows up to
+    three matching lines per entry, up to ten entries, with the
+    term highlighted, then a total count. For titles and tags
+    only, use 'search'.
+
+EXAMPLES
+    grep forest`,
+
+  stats: `STATS(1)
+
+NAME
+    stats - the journal in numbers
+
+SYNOPSIS
+    stats
+
+DESCRIPTION
+    Entry count, total words, average read time, first and
+    latest dates, and the five most used tags drawn as bars.`,
+
+  fortune: `FORTUNE(1)
+
+NAME
+    fortune - one sentence from a random entry
+
+SYNOPSIS
+    fortune
+
+DESCRIPTION
+    Picks a random entry, then a random sentence from its body,
+    and signs it with the entry number. Run again for another.`,
+
+  next: `NEXT(1)
+
+NAME
+    next, prev - walk the trail of entries
+
+SYNOPSIS
+    next
+    prev
+
+DESCRIPTION
+    Reads the entry after (or before) the one you read last this
+    session. With nothing read yet, 'next' starts at entry #000.
+    At either end of the trail it tells you so.`,
+
   hoot: `HOOT(1)
 
 NAME
@@ -1290,6 +1356,7 @@ const state = {
   theme: 'amber',
   forest: true,
   bootTime: Date.now(),
+  lastRead: null,
 };
 let composeState = null;
 
@@ -1563,7 +1630,7 @@ function fileCandidates(cmd) {
 function getCandidates(word, isFirst, cmd) {
   let candidates = [];
   if (isFirst) candidates = Object.keys(COMMANDS).sort();
-  else if (cmd === 'cat' || cmd === 'ls' || cmd === 'open') candidates = fileCandidates(cmd);
+  else if (cmd === 'cat' || cmd === 'ls' || cmd === 'open' || cmd === 'head' || cmd === 'wc') candidates = fileCandidates(cmd);
   else if (cmd === 'cd') candidates = [...new Set(fileCandidates('cd').concat(['..', '~']))];
   else if (cmd === 'read') candidates = POSTS && POST_NAMES.length ? POST_NAMES.map(n => String(POSTS[n].num)) : [];
   else if (cmd === 'man' || cmd === 'help') candidates = [...new Set(Object.keys(MAN_PAGES).concat(Object.keys(COMMANDS)))];
@@ -1571,6 +1638,7 @@ function getCandidates(word, isFirst, cmd) {
   else if (cmd === 'crt' || cmd === 'sound') candidates = ['on', 'off'];
   else if (cmd === 'forest') candidates = ['on', 'off', 'release'];
   else if (cmd === 'changelog' || cmd === 'releases') candidates = CHANGELOG.map(r => r.version);
+  else if (cmd === 'hermes') candidates = ['--version', '--help'];
   else if (cmd === 'mail') candidates = [];
   return candidates;
 }
@@ -1765,7 +1833,27 @@ COMMANDS.ls = (args) => {
   printRaw('<div class="listing">' + html + '</div>');
 };
 
+function postByNum(n) {
+  const num = Number(n);
+  if (!Number.isInteger(num)) return null;
+  return POST_NAMES.map(x => POSTS[x]).find(p => p.num === num) || null;
+}
+function levenshtein(a, b) {
+  if (a === b) return 0;
+  let prev = [];
+  for (let j = 0; j <= b.length; j++) prev.push(j);
+  for (let i = 1; i <= a.length; i++) {
+    const cur = [i];
+    for (let j = 1; j <= b.length; j++) {
+      cur.push(Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)));
+    }
+    prev = cur;
+  }
+  return prev[b.length];
+}
+
 function catPost(p) {
+  state.lastRead = p.name;
   const tags = (p.tags || []).join(', ');
   const badge = (p.num != null) ? '#' + String(p.num).padStart(3, '0') + ' — ' : '';
   printRaw('<div class="file-header"><span class="dim">' + '─'.repeat(74) + '</span>\n  <span class="amber">' + escapeHtml(p.name) + '</span>'
@@ -1892,7 +1980,7 @@ COMMANDS.releases = COMMANDS.changelog;
 COMMANDS.hermes = (args) => {
   if (args[0] === '--version' || args[0] === '-v') { print(escapeHtml(engineString())); return; }
   if (args[0] === '--help' || args[0] === '-h') {
-    printManPage('HERMES(1)\n\nUSAGE\n    hermes             engine status\n    hermes --version   print the engine string\n    hermes --help      this message\n\nSEE ALSO\n    version, changelog, uname -r');
+    printManPage(MAN_PAGES.hermes);
     return;
   }
   print('<span class="amber">' + escapeHtml(engineString()) + '</span> <span class="dim">· ' + POST_NAMES.length + ' entries · ' + TOPICS.length + ' topics · up ' + escapeHtml(formatUptime(Date.now() - state.bootTime)) + '</span>');
@@ -2025,6 +2113,197 @@ COMMANDS.read = (args) => {
   catPost(target);
 };
 
+// ---- navigation: random / latest / first / next / prev ----
+function needData() {
+  if (POST_NAMES.length) return false;
+  print('no entries mounted — data.js missing. run tools/update_index.py', 'error');
+  return true;
+}
+COMMANDS.random = () => {
+  if (needData()) return;
+  catPost(POSTS[POST_NAMES[Math.floor(Math.random() * POST_NAMES.length)]]);
+};
+COMMANDS.shuffle = COMMANDS.random;
+COMMANDS.latest = () => COMMANDS.read([]);
+COMMANDS.first = () => {
+  if (needData()) return;
+  catPost(postByNum(0) || POSTS[POST_NAMES[0]]);
+};
+COMMANDS.next = () => {
+  if (needData()) return;
+  if (state.lastRead === null || !POSTS[state.lastRead]) { COMMANDS.first(); return; }
+  const i = POST_NAMES.indexOf(state.lastRead);
+  if (i >= POST_NAMES.length - 1) { print('end of the trail — no newer entry', 'dim'); return; }
+  catPost(POSTS[POST_NAMES[i + 1]]);
+};
+COMMANDS.prev = () => {
+  if (needData()) return;
+  const i = state.lastRead === null ? 0 : POST_NAMES.indexOf(state.lastRead);
+  if (i <= 0) { print('this is where it began — no older entry', 'dim'); return; }
+  catPost(POSTS[POST_NAMES[i - 1]]);
+};
+
+// ---- text tools: grep / head / wc ----
+function escapeRegExp(t) { return t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+function markLine(line, re) {
+  let out = '', last = 0, m;
+  re.lastIndex = 0;
+  while ((m = re.exec(line)) !== null) {
+    if (m[0] === '') { re.lastIndex++; continue; }
+    out += escapeHtml(line.slice(last, m.index)) + '<mark>' + escapeHtml(m[0]) + '</mark>';
+    last = m.index + m[0].length;
+  }
+  return out + escapeHtml(line.slice(last));
+}
+COMMANDS.grep = (args) => {
+  const term = args.join(' ');
+  if (!term) { print('usage: grep <term>', 'error'); print('example: grep forest', 'dim'); return; }
+  if (needData()) return;
+  const re = new RegExp(escapeRegExp(term), 'gi');
+  let total = 0, entries = 0, shown = 0;
+  POST_NAMES.forEach(n => {
+    const lines = POSTS[n].content.split('\n');
+    const hits = [];
+    lines.forEach(l => {
+      const c = (l.match(re) || []).length;
+      if (c) { total += c; hits.push(l.trim()); }
+    });
+    if (!hits.length) return;
+    entries++;
+    if (shown >= 10) return;
+    shown++;
+    print('<span class="file md">entries/' + escapeHtml(n) + '</span>');
+    hits.slice(0, 3).forEach(l => {
+      let line = l;
+      if (line.length > 100) {
+        const at = Math.max(0, line.toLowerCase().indexOf(term.toLowerCase()) - 40);
+        line = (at > 0 ? '…' : '') + line.slice(at, at + 100) + '…';
+      }
+      print('  ' + markLine(line, re));
+    });
+  });
+  if (!total) { print('grep: no matches for \'' + escapeHtml(term) + '\'', 'dim'); return; }
+  if (entries > shown) print('<span class="dim">… and ' + (entries - shown) + ' more entries</span>');
+  print('<span class="dim">' + total + ' matches in ' + entries + ' entries</span>');
+};
+
+COMMANDS.head = (args) => {
+  if (!args[0]) { print('usage: head <file> [n]', 'error'); return; }
+  const file = resolveFile(args[0]);
+  if (!file) { print('head: ' + escapeHtml(args[0]) + ': No such file or directory', 'error'); return; }
+  let n = args[1] === undefined ? 10 : parseInt(args[1], 10);
+  if (!(n >= 0)) { print('head: invalid number of lines: ' + escapeHtml(args[1]), 'error'); return; }
+  const lines = (file.content || '').split('\n').slice(0, n);
+  printRaw('<div style="white-space:pre-wrap">' + lines.map(escapeHtml).join('\n') + '</div>');
+};
+
+function wcCounts(text) {
+  return { l: text.split('\n').length, w: text.split(/\s+/).filter(Boolean).length, c: text.length };
+}
+function wcRow(c, name) {
+  return [c.l, c.w, c.c].map(x => String(x).padStart(7)).join('') + ' ' + escapeHtml(name);
+}
+COMMANDS.wc = (args) => {
+  if (args[0]) {
+    const file = resolveFile(args[0]);
+    if (!file) { print('wc: ' + escapeHtml(args[0]) + ': No such file or directory', 'error'); return; }
+    print(wcRow(wcCounts(file.content || ''), file.name || args[0]));
+    return;
+  }
+  if (needData()) return;
+  const tot = { l: 0, w: 0, c: 0 };
+  POST_NAMES.forEach(n => {
+    const c = wcCounts(POSTS[n].content);
+    tot.l += c.l; tot.w += c.w; tot.c += c.c;
+  });
+  print(wcRow(tot, 'total'));
+};
+
+// ---- the journal in numbers: stats / tags / calendar / fortune ----
+function tagCounts() {
+  const counts = {};
+  POST_NAMES.forEach(n => POSTS[n].tags.forEach(t => { counts[t] = (counts[t] || 0) + 1; }));
+  return Object.keys(counts).map(t => ({ tag: t, n: counts[t] }))
+    .sort((a, b) => b.n - a.n || a.tag.localeCompare(b.tag));
+}
+function bar(n, max, width) { return '█'.repeat(Math.max(1, Math.round(n / max * width))); }
+COMMANDS.stats = () => {
+  if (needData()) return;
+  const ps = POST_NAMES.map(n => POSTS[n]);
+  const words = ps.reduce((a, p) => a + p.content.split(/\s+/).filter(Boolean).length, 0);
+  const avg = ps.reduce((a, p) => a + (p.readTime || 1), 0) / ps.length;
+  const dates = ps.map(p => p.date).filter(Boolean).sort();
+  const tc = tagCounts().slice(0, 5);
+  const lines = [
+    '<span class="amber">entries</span>        ' + ps.length,
+    '<span class="amber">total words</span>    ' + words,
+    '<span class="amber">avg read time</span>  ' + avg.toFixed(1) + ' min',
+    '<span class="amber">first entry</span>    ' + escapeHtml(dates[0] || '?'),
+    '<span class="amber">latest entry</span>   ' + escapeHtml(dates[dates.length - 1] || '?'),
+    '',
+    '<span class="amber">top tags</span>',
+  ].concat(tc.map(t => '  ' + escapeHtml(t.tag).padEnd(14) + ' <span class="green">' + bar(t.n, tc[0].n, 20) + '</span> ' + t.n));
+  printRaw('<pre class="neofetch">' + lines.join('\n') + '</pre>');
+};
+
+COMMANDS.tags = () => {
+  if (needData()) return;
+  const tc = tagCounts();
+  if (!tc.length) { print('no topics yet.', 'dim'); return; }
+  printRaw('<pre class="neofetch">' + tc.map(t => String(t.n).padStart(3) + '  ' + escapeHtml(t.tag)).join('\n') + '</pre>');
+  print('<span class="dim">cd topics/&lt;tag&gt; to filter entries.</span>');
+};
+COMMANDS.topics = COMMANDS.tags;
+
+COMMANDS.calendar = () => {
+  if (needData()) return;
+  const months = {};
+  POST_NAMES.forEach(n => {
+    const m = (POSTS[n].date || '').slice(0, 7);
+    if (m) months[m] = (months[m] || 0) + 1;
+  });
+  const keys = Object.keys(months).sort();
+  const max = Math.max.apply(null, keys.map(k => months[k]));
+  printRaw('<pre class="neofetch">' + keys.map(k => k + '  ' + String(months[k]).padStart(3) + '  <span class="green">' + bar(months[k], max, 20) + '</span>').join('\n') + '</pre>');
+};
+COMMANDS.cal = COMMANDS.calendar;
+
+function fortuneSentences(body) {
+  const out = [];
+  let fenced = false;
+  body.split('\n').forEach(raw => {
+    const line = raw.trim();
+    if (line.startsWith('```')) { fenced = !fenced; return; }
+    if (fenced || !line || /^(#|<|>|\||---|!\[)/.test(line)) return;
+    const text = line.replace(/^([-*]|\d+\.)\s+/, '');
+    (text.match(/[^.!?]+[.!?]+(?=\s|$)/g) || []).forEach(sn => {
+      const t = sn.trim();
+      if (t.length >= 40 && t.length <= 240 && !/[\[\]<>`#|]|\(http/.test(t)) out.push(t.replace(/[*_]+/g, ''));
+    });
+  });
+  return out;
+}
+COMMANDS.fortune = () => {
+  if (needData()) return;
+  const order = POST_NAMES.slice().sort(() => Math.random() - 0.5);
+  for (const n of order) {
+    const sn = fortuneSentences(POSTS[n].content);
+    if (!sn.length) continue;
+    const p = POSTS[n];
+    print('<span class="amber">“' + escapeHtml(sn[Math.floor(Math.random() * sn.length)]) + '”</span>');
+    print('<span class="dim">  — Entry #' + String(p.num).padStart(3, '0') + '</span>');
+    return;
+  }
+  print('the forest is quiet. no fortune today.', 'dim');
+};
+
+// Every localStorage key the terminal owns. Later features append here.
+const RESET_KEYS = ['owlcotPrefs', 'owlcotHistory', 'owlcotVisitor', 'owlcotEngine'];
+COMMANDS.reset = () => {
+  RESET_KEYS.forEach(k => { try { localStorage.removeItem(k); } catch (e) {} });
+  print('forest reset. reload to start over.', 'success');
+};
+
 COMMANDS.open = (args) => {
   if (!args[0]) { print('usage: open <file> (try: open latest)', 'error'); return; }
   const file = resolveFile(args[0]);
@@ -2142,7 +2421,10 @@ function submitCommand(raw) {
   } else {
     print('<span class="error shake">' + escapeHtml(cmd) + ': command not found</span>');
     const known = Object.keys(COMMANDS);
-    const close = known.filter(c => c.startsWith(cmd.slice(0, Math.max(1, cmd.length - 2)))).slice(0, 3);
+    const lc = cmd.toLowerCase();
+    let close = known.map(c => ({ c: c, d: levenshtein(lc, c) })).filter(x => x.d <= 2)
+      .sort((a, b) => a.d - b.d || a.c.localeCompare(b.c)).slice(0, 3).map(x => x.c);
+    if (!close.length) close = known.filter(c => c.startsWith(cmd.slice(0, Math.max(1, cmd.length - 2)))).slice(0, 3);
     if (close.length) print('<span class="dim">did you mean: ' + close.map(s => '`' + escapeHtml(s) + '`').join(' / ') + '?</span>', 'dim');
     print("<span class='dim'>type 'help' for available commands.</span>", 'dim');
     playBell();

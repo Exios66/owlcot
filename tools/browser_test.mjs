@@ -287,6 +287,82 @@ await run('clear', 200); await run('hermes --version', 300);
 check('hermes --version', await outHas('hermes-engine 2.0.0 (nocturne)'));
 await run('clear', 200); await run('hermes', 300);
 check('hermes status line', await outHas('hermes-engine') && await outHas('entries'));
+
+// ---- Task 3: new TUI commands ----
+const C = async (cmd, settle = 400) => { await run('clear', 150); await run(cmd, settle); return outText(); };
+{
+  const maxNum = await page.evaluate(() => Math.max(...window.OWL_DATA.posts.map(p => p.num)));
+  const total = await page.evaluate(() => window.OWL_DATA.posts.length);
+  let t;
+  await C('hermes --help', 1500);
+  check('hermes --help prints MAN_PAGES.hermes', await outHas('the engine under the shell') && await outHas('HERMES(1)'));
+  t = await C('random', 700);
+  check('random: reads an entry', t.includes('open full page') || t.includes('#0'));
+  t = await C('shuffle', 700);
+  check('shuffle alias', t.includes('open full page'));
+  t = await C('latest', 700);
+  check('latest: reads newest', t.includes('#' + String(maxNum).padStart(3, '0') + ' —'));
+  t = await C('first', 700);
+  check('first: reads #000', t.includes('#000 —'));
+  t = await C('prev', 500);
+  check('prev at first: where it began', t.includes('this is where it began'));
+  t = await C('next', 700);
+  check('next from #000 goes to #001', t.includes('#001 —'));
+  t = await C('prev', 700);
+  check('prev goes back to #000', t.includes('#000 —'));
+  await run('read ' + maxNum, 700);
+  t = await C('next', 500);
+  check('next at newest: end of the trail', t.includes('end of the trail'));
+  t = await C('grep forest', 500);
+  check('grep: <mark> hit + summary', await page.$$eval('#output mark', n => n.length) > 0 && /\d+ matches? in \d+ entr/.test(t));
+  t = await C('grep <img', 500);
+  check('grep <img: echoed literally, nothing injected', t.includes('<img') && !(await page.$('#output img[src], #output img:not([class])')) );
+  t = await C('grep zzqxqzz', 400);
+  check("grep: no matches message", t.includes("grep: no matches for 'zzqxqzz'"));
+  t = await C('grep', 300);
+  check('grep: usage', t.includes('usage: grep'));
+  t = await C('head 000-boss-man.md 3', 400);
+  check('head: 3 lines', t.split('\n').filter(l => l.trim()).length <= 4 && t.includes('night'));
+  t = await C('wc 000-boss-man.md', 400);
+  check('wc file: lines words chars name', /\d+\s+\d+\s+\d+\s+000-boss-man\.md/.test(t));
+  t = await C('wc', 400);
+  check('wc total', /\d+\s+\d+\s+\d+\s+total/.test(t));
+  t = await C('stats', 500);
+  check('stats: entries + bars', t.includes('entries') && t.includes('█') && t.includes('read time'));
+  t = await C('tags', 400);
+  check('tags: counts', /\d+\s+\S+/.test(t) && t.includes('memory'));
+  t = await C('topics', 400);
+  check('topics alias', t.includes('memory'));
+  t = await C('fortune', 400);
+  check('fortune: attribution', /— Entry #\d{3}/.test(t));
+  t = await C('calendar', 400);
+  check('calendar: YYYY-MM groups', /20\d\d-\d\d\s/.test(t));
+  t = await C('cal', 400);
+  check('cal alias', /20\d\d-\d\d\s/.test(t));
+  t = await C('tsgs', 400);
+  check('unknown cmd: tsgs suggests tags', t.includes('command not found') && t.includes('`tags`'));
+  t = await C('hermes', 300);
+  const tabv = await (async () => { await clearInput(); await page.keyboard.type('hermes --v'); await page.keyboard.press('Tab'); return page.$eval('#cmdInput', e => e.value); })();
+  check('tab: hermes --version', tabv === 'hermes --version', tabv);
+  await clearInput();
+  await page.keyboard.type('head 000'); await page.keyboard.press('Tab');
+  check('tab: head completes files', (await page.$eval('#cmdInput', e => e.value)).startsWith('head 000'));
+  await clearInput();
+  t = await C('help', 2500);
+  for (let i = 0; i < 20 && !t.includes('REPORTING BUGS'); i++) { await sleep(250); t = await outText(); }
+  check('help lists new commands', ['random','grep','stats','fortune','calendar','reset','next'].every(w => t.includes(w)));
+  t = await C('man grep', 1500);
+  check('man grep', t.includes('GREP(1)'));
+  await C('man fortune', 1500); check('man fortune', await outHas('FORTUNE(1)'));
+  await C('man stats', 1500); check('man stats', await outHas('STATS(1)'));
+  await C('man next', 1500); check('man next', await outHas('NEXT(1)'));
+  // reset last (clears prefs/visitor/engine keys)
+  await page.evaluate(() => { localStorage.setItem('owlcotVisitor', 'x'); });
+  t = await C('reset', 400);
+  check('reset: message', t.includes('forest reset. reload to start over.'));
+  check('reset: keys cleared', await page.evaluate(() => ['owlcotPrefs','owlcotHistory','owlcotVisitor','owlcotEngine'].every(k => localStorage.getItem(k) === null)));
+  await C('clear', 100);
+}
 await run('clear', 200); await run('forest release', 600);
 check('forest release prints card', await page.evaluate(() => !!document.querySelector('.release-card')) && await outHas("type 'changelog' for the full notes"));
 await run('clear', 200); await run('man changelog', 300);
@@ -402,6 +478,24 @@ await sleep(1200);
   await sleep(3200);
   check('release: card fits at 390px', await p8.$eval('body', () => !!document.querySelector('.release-card') && document.documentElement.scrollWidth <= window.innerWidth + 1 && document.querySelector('.release-card').getBoundingClientRect().right <= window.innerWidth));
   await p8.close();
+}
+
+// ---------- noData page: OWL_DATA missing ----------
+{
+  const pn = await newPage();
+  await pn.evaluateOnNewDocument(() => { Object.defineProperty(window, 'OWL_DATA', { set() {}, get() { return undefined; } }); });
+  await pn.goto(BASE + '/', { waitUntil: 'load' });
+  await sleep(3200);
+  const nerr = errors.length;
+  for (const c of ['random', 'grep x', 'stats', 'fortune', 'next', 'prev', 'first', 'tags', 'calendar', 'wc', 'head x']) {
+    await pn.focus('#cmdInput');
+    await pn.keyboard.type(c, { delay: 5 });
+    await pn.keyboard.press('Enter');
+    await sleep(250);
+  }
+  check('noData: commands survive without pageerror', errors.length === nerr, errors.slice(nerr).join(' | '));
+  check('noData: commands printed something', (await pn.$eval('#output', e => e.innerText)).includes('no entries'));
+  await pn.close();
 }
 
 await browser.close();
